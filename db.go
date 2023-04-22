@@ -7,8 +7,8 @@ import (
 )
 
 type DB struct {
-	kv   *bolt.DB // key-value storage
-	hnsw hnsw     // spatial indexing
+	kv    *bolt.DB // key-value storage
+	index Index    // spatial indexing
 }
 
 func NewDB(path string) (*DB, error) {
@@ -17,11 +17,11 @@ func NewDB(path string) (*DB, error) {
 		return nil, err
 	}
 
-	hnsw := hnsw{}
+	index := Index{}
 
 	return &DB{
-		kv:   kv,
-		hnsw: hnsw,
+		kv:    kv,
+		index: index,
 	}, nil
 }
 
