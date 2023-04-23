@@ -2,50 +2,52 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 
 	bolt "go.etcd.io/bbolt"
 )
 
-type DB struct {
-	kv    *bolt.DB // key-value storage
-	index Index    // spatial indexing
+// Key-value storage
+type KV struct {
+	path string
+	kv   *bolt.DB
 }
 
-func NewDB(path string) (*DB, error) {
-	kv, err := bolt.Open(path, 0666, nil)
+func NewKV(path string) (*KV, error) {
+	kv := &KV{
+		path: path,
+	}
+
+	bolt, err := bolt.Open(filepath.Join(path, "data.bin"), 0666, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	index := Index{}
-
-	return &DB{
-		kv:    kv,
-		index: index,
-	}, nil
+	kv.kv = bolt
+	return kv, nil
 }
 
-func (db *DB) Close() {
-	db.kv.Close()
+func (kv *KV) Close() {
+	kv.kv.Close()
 }
 
-func (db *DB) NewCollection(name string) error {
+func (kv *KV) NewCollection(name string) error {
 	tx := func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucket([]byte(name))
 		return err
 	}
-	return db.kv.Update(tx)
+	return kv.kv.Update(tx)
 }
 
-func (db *DB) DeleteCollection(name string) error {
+func (kv *KV) DeleteCollection(name string) error {
 	tx := func(tx *bolt.Tx) error {
 		err := tx.DeleteBucket([]byte(name))
 		return err
 	}
-	return db.kv.Update(tx)
+	return kv.kv.Update(tx)
 }
 
-func (db *DB) Put(p pair, collection string) error {
+func (kv *KV) Put(p pair, collection string) error {
 	tx := func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(collection))
 		if b == nil {
@@ -67,12 +69,12 @@ func (db *DB) Put(p pair, collection string) error {
 		return nil
 	}
 
-	err := db.kv.Update(tx)
+	err := kv.kv.Update(tx)
 
 	return err
 }
 
-func (db *DB) Get(key string, collection string) (*pair, error) {
+func (kv *KV) Get(key string, collection string) (*pair, error) {
 	p := &pair{K: key}
 
 	tx := func(tx *bolt.Tx) error {
@@ -96,12 +98,12 @@ func (db *DB) Get(key string, collection string) (*pair, error) {
 		return nil
 	}
 
-	err := db.kv.View(tx)
+	err := kv.kv.View(tx)
 
 	return p, err
 }
 
-func (db *DB) Delete(key string, collection string) error {
+func (kv *KV) Delete(key string, collection string) error {
 	tx := func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(collection))
 		if b == nil {
@@ -113,7 +115,7 @@ func (db *DB) Delete(key string, collection string) error {
 		return err
 	}
 
-	err := db.kv.Update(tx)
+	err := kv.kv.Update(tx)
 
 	return err
 }
