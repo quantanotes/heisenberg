@@ -1,16 +1,30 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
+	"bytes"
+	"encoding/gob"
 )
 
-// Get full dir from local dir
-func GetDir(path string) (string, error) {
-	wd, err := os.Getwd()
+func ToBytes(data interface{}) ([]byte, error) {
+	buf := bytes.Buffer{}
+	enc := gob.NewEncoder(&buf)
+
+	err := enc.Encode(data)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return filepath.Join(wd, path), nil
+	return buf.Bytes(), nil
+}
+
+func FromBytes(data []byte, out interface{}) error {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	err := dec.Decode(out)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
