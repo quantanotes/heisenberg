@@ -173,7 +173,8 @@ func (db *DB) GetCollection(name string, loadIdx bool) (*Collection, error) {
 	}
 
 	if collection.idx.hnsw == nil && loadIdx {
-		// handle load collection index
+		idxPath := filepath.Join(db.path, fmt.Sprintf("%s.idx", name))
+		collection.idx = LoadIndex(idxPath, collection.idx.config)
 	}
 
 	return collection, nil
