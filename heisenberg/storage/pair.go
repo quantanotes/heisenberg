@@ -1,4 +1,4 @@
-package main
+package storage
 
 // Data instance inside key value store
 type Value struct {
