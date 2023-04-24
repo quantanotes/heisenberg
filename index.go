@@ -6,11 +6,11 @@ import (
 )
 
 type indexConfig struct {
-	Dim      int    // Dimension size of vectors
-	MaxSize  int    // Max amount of vectors in index
-	Space    string // Distance measure
-	Cursor   int    // Position to insert vector
-	FreeList []int  // Queue data structure to store deleted vectors
+	Dim      int    `json:"dim"`      // Dimension size of vectors
+	MaxSize  int    `json:"maxSize"`  // Max amount of vectors in index
+	Space    string `json:"space"`    // Distance measure
+	Cursor   int    `json:"cursor"`   // Position to insert vector
+	FreeList []int  `json:"freeList"` // Queue data structure to store deleted vectors
 }
 
 type Index struct {
@@ -46,12 +46,16 @@ func LoadIndex(path string, config *indexConfig) *Index {
 }
 
 func (idx *Index) Close() {
-	idx.hnsw.Free()
+	if idx.hnsw != nil {
+		idx.hnsw.Free()
+	}
 	idx = nil
 }
 
 func (idx *Index) Save() {
-	idx.hnsw.Save(idx.path)
+	if idx.hnsw != nil {
+		idx.hnsw.Save(idx.path)
+	}
 }
 
 func (idx *Index) Put(vec []float32, id uint32) {

@@ -1,24 +1,15 @@
 package main
 
 import (
-	"bytes"
 	"encoding/binary"
 	"encoding/json"
 )
 
-func ToBytes(data interface{}) ([]byte, error) {
-	buf := bytes.Buffer{}
-	enc := json.NewEncoder(&buf)
-
-	err := enc.Encode(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
+func ToJson(data interface{}) ([]byte, error) {
+	return json.Marshal(data)
 }
 
-func FromBytes(data []byte, obj interface{}) error {
+func FromJson(data []byte, obj interface{}) error {
 	return json.Unmarshal(data, obj)
 }
 

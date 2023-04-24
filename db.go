@@ -44,13 +44,16 @@ func NewDB(path string) *DB {
 }
 
 func (db *DB) Close() {
+	for pair := db.collections.Oldest(); pair != nil; pair = pair.Next() {
+		pair.Value.idx.Save()
+		pair.Value.idx.Close()
+	}
 	db.kv.Close()
 }
 
 // Create a new collection of indexed vectors in the database. Returns instance of collection.
 func (db *DB) NewCollection(name string, dim int, size int, space string, m int, ef int) (*Collection, error) {
 	var collection *Collection
-	collection = nil
 
 	tx := func(tx *bbolt.Tx) error {
 		// Create associated bucket with collection
@@ -67,7 +70,7 @@ func (db *DB) NewCollection(name string, dim int, size int, space string, m int,
 			0,
 			make([]int, 0),
 		}
-		configData, err := ToBytes(config)
+		configData, err := ToJson(config)
 		if err != nil {
 			return err
 		}
@@ -131,7 +134,7 @@ func (db *DB) LoadCollection(name string, loadIdx bool) (*Collection, error) {
 
 		// Read bytes in to config
 		config := &indexConfig{}
-		if err := FromBytes(configData, &config); err != nil || config == nil {
+		if err := FromJson(configData, &config); err != nil || config == nil {
 			return fmt.Errorf("invalid config for index %s does not exist", name)
 		}
 
@@ -206,24 +209,25 @@ func (db *DB) DeleteCollection(name string) error {
 }
 
 func (db *DB) Get(key string, collectionName string) (*Value, error) {
-	var value *Value
+	value := &Value{}
 
 	tx := func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(collectionName))
-		if b != nil {
+		if b == nil {
 			return fmt.Errorf("collection %s does not exist", collectionName)
 		}
+
 		data := b.Get([]byte(key))
 		if data == nil {
 			return fmt.Errorf("key %s does not exist in collection %s", key, collectionName)
 		}
 
-		FromBytes(data, value)
+		FromJson(data, value)
 
 		return nil
 	}
 
-	if err := db.kv.View(tx); err != nil {
+	if err := db.kv.View(tx); err != nil || value == nil {
 		return nil, err
 	}
 
@@ -242,7 +246,7 @@ func (db *DB) Put(key string, vec []float32, meta interface{}, collectionName st
 		// Previous iteration of data at key
 		prev := b.Get([]byte(key))
 		if prev != nil {
-			FromBytes(prev, value)
+			FromJson(prev, value)
 			if vec != nil {
 				value.Vec = vec
 			}
@@ -256,7 +260,7 @@ func (db *DB) Put(key string, vec []float32, meta interface{}, collectionName st
 		}
 
 		// Convert to-stored value in to bytes
-		data, err := ToBytes(value)
+		data, err := ToJson(value)
 		if err != nil {
 			return err
 		}
@@ -300,7 +304,7 @@ func (db *DB) Delete(key string, collectionName string) error {
 		if data == nil {
 			return fmt.Errorf("key %s does not exist in collection %s", key, collectionName)
 		}
-		FromBytes(data, value)
+		FromJson(data, value)
 
 		// Delete mapping to key
 		idxInBytes := make([]byte, 4)
@@ -343,7 +347,7 @@ func (db *DB) Search(vec []float32, k int, collectionName string) ([]*Pair, erro
 			if data == nil {
 				break
 			}
-			err := FromBytes(data, value)
+			err := FromJson(data, value)
 			if err != nil {
 				break
 			}
