@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -16,18 +17,24 @@ const collectionMemSize = 3 // Max collection indices in memory
 
 type collectionsMemMap = orderedmap.OrderedMap[string, *Collection]
 
+type Collection struct {
+	name string
+	db   *DB
+	idx  *Index
+}
+
 type DB struct {
 	path        string            // Path of all database files
 	kv          *bbolt.DB         // On disk data
 	collections collectionsMemMap // In memory data for collections/indices
 }
 
-func NewDB(path string) {
-
+func NewDB(path string) *DB {
+	return nil
 }
 
-func LoadDB(path string) {
-
+func LoadDB(path string) *DB {
+	return nil
 }
 
 func (db *DB) Close() {
@@ -35,7 +42,7 @@ func (db *DB) Close() {
 }
 
 // Create a new collection of indexed vectors in the database. Returns instance of collection.
-func (db *DB) NewCollection(name string, dim int, size int, space string, m int, ef int) (*Collection, error) {
+func (db *DB) NewCollection(name string, dim int, size int, space string, m int, ef int, loadIdx bool) (*Collection, error) {
 	var collection *Collection
 	collection = nil
 
@@ -60,19 +67,25 @@ func (db *DB) NewCollection(name string, dim int, size int, space string, m int,
 		}
 
 		// Store config data inside collection bucket
-		err = b.Put([]byte(configKey), configData)
-		if err != nil {
+		if err = b.Put([]byte(configKey), configData); err != nil {
 			return err
 		}
 
 		// Create nested bucket for index to key mappings
-		_, err = b.CreateBucket([]byte(mappingKey))
-		if err != nil {
+		if _, err = b.CreateBucket([]byte(mappingKey)); err != nil {
 			return err
 		}
 
 		// Create a new index and save at path/collection name.idx
-		idx := NewIndex(filepath.Join(db.path, fmt.Sprintf("%s.idx", name)), config, m, ef)
+		idxPath := filepath.Join(db.path, fmt.Sprintf("%s.idx", name))
+		idx := &Index{
+			idxPath,
+			nil,
+			config,
+		}
+		if loadIdx {
+			idx = NewIndex(idxPath, config, m, ef)
+		}
 
 		collection = &Collection{
 			name,
@@ -87,14 +100,17 @@ func (db *DB) NewCollection(name string, dim int, size int, space string, m int,
 		return nil, err
 	}
 
-	db.collections.Set(name, collection) // Add collection to mem map
-	db.popCollection()
+	// Add collection to mem map
+	if loadIdx {
+		db.collections.Set(name, collection)
+		db.popCollection()
+	}
 
 	return collection, nil
 }
 
 // Opens a collection of indexed vectors. Returns instance of collection.
-func (db *DB) LoadCollection(name string) (*Collection, error) {
+func (db *DB) LoadCollection(name string, loadIdx bool) (*Collection, error) {
 	var collection *Collection
 	collection = nil
 
@@ -117,8 +133,16 @@ func (db *DB) LoadCollection(name string) (*Collection, error) {
 			return errors.New(fmt.Sprintf("invalid config for index %s does not exist", name))
 		}
 
-		// Load collection from path/collection name.idx
-		idx := LoadIndex(filepath.Join(db.path, fmt.Sprintf("%s.idx", name)), config)
+		// Load collection index from path/collection name.idx
+		idxPath := filepath.Join(db.path, fmt.Sprintf("%s.idx", name))
+		idx := &Index{
+			idxPath,
+			nil,
+			config,
+		}
+		if loadIdx {
+			idx = LoadIndex(idxPath, config)
+		}
 
 		collection = &Collection{
 			name,
@@ -134,17 +158,24 @@ func (db *DB) LoadCollection(name string) (*Collection, error) {
 	}
 
 	// Add collection to mem map
-	db.collections.Set(name, collection)
-	db.popCollection()
+	if loadIdx {
+		db.collections.Set(name, collection)
+		db.popCollection()
+	}
 
 	return collection, nil
 }
 
-func (db *DB) GetCollection(name string) (*Collection, error) {
+func (db *DB) GetCollection(name string, loadIdx bool) (*Collection, error) {
 	collection, ok := db.collections.Get(name)
 	if !ok {
-		return db.LoadCollection(name)
+		return db.LoadCollection(name, loadIdx)
 	}
+
+	if collection.idx.hnsw == nil && loadIdx {
+		// handle load collection index
+	}
+
 	return collection, nil
 }
 
@@ -167,26 +198,44 @@ func (db *DB) CloseCollection(name string) {
 	db.collections.Delete(name)
 }
 
-func (db *DB) Get() *data {
+func (db *DB) DeleteCollection(name string) error {
 	return nil
+}
+
+func (db *DB) Get(key string, collectionName string) (*Value, error) {
+	var value *Value
+
+	tx := func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(collectionName))
+		if b != nil {
+			return errors.New(fmt.Sprintf("collection %s does not exist", collectionName))
+		}
+		data := b.Get([]byte(key))
+		if data == nil {
+			return errors.New(fmt.Sprintf("key %s does not exist in collection %s", key, collectionName))
+		}
+
+		FromBytes(data, value)
+
+		return nil
+	}
+
+	if err := db.kv.View(tx); err != nil {
+		return nil, err
+	}
+
+	return value, nil
 }
 
 func (db *DB) Put(key string, vec []float32, meta interface{}, collectionName string) error {
 	tx := func(tx *bbolt.Tx) error {
-		// Retrieve collection and index
-		collection, err := db.GetCollection(collectionName)
+		collection, b, mapping, err := db.getCollectionBucketMapping(tx, collectionName, false)
 		if err != nil {
-			return errors.New(fmt.Sprintf("collection %s does not exist", collectionName))
-		}
-
-		// Get associated on disk bucket for collection
-		b := tx.Bucket([]byte(collectionName))
-		if b == nil {
-			return errors.New(fmt.Sprintf("collection %s does not exist", collectionName))
+			return err
 		}
 
 		// Value to be inserted at key
-		value := &data{}
+		value := &Value{}
 		// Previous iteration of data at key
 		prev := b.Get([]byte(key))
 		if prev != nil {
@@ -214,6 +263,13 @@ func (db *DB) Put(key string, vec []float32, meta interface{}, collectionName st
 			return err
 		}
 
+		// Map index to key
+		idxInBytes := IntToBytes(value.Idx)
+		err = mapping.Put([]byte(key), idxInBytes)
+		if err != nil {
+			return err
+		}
+
 		// Iterate index cursor if all kv mutations are succesful
 		collection.idx.MutNext()
 
@@ -221,4 +277,108 @@ func (db *DB) Put(key string, vec []float32, meta interface{}, collectionName st
 	}
 
 	return db.kv.Update(tx)
+}
+
+func (db *DB) Delete(key string, collectionName string) error {
+	tx := func(tx *bbolt.Tx) error {
+		collection, b, mapping, err := db.getCollectionBucketMapping(tx, collectionName, false)
+		if err != nil {
+			return err
+		}
+
+		// Delete key from key value store
+		if err = b.Delete([]byte(key)); err != nil {
+			return err
+		}
+
+		// Get previous value at key
+		value := &Value{}
+		data := b.Get([]byte(key))
+		if data == nil {
+			return errors.New(fmt.Sprintf("key %s does not exist in collection %s", key, collectionName))
+		}
+		FromBytes(data, value)
+
+		// Delete mapping to key
+		idxInBytes := make([]byte, 4)
+		binary.LittleEndian.PutUint32(idxInBytes, uint32(value.Idx))
+		if err = mapping.Delete(idxInBytes); err != nil {
+			return err
+		}
+
+		collection.idx.Delete(value.Idx)
+
+		return nil
+	}
+
+	return db.kv.Update(tx)
+}
+
+func (db *DB) Search(vec []float32, k int, collectionName string) ([]*Pair, error) {
+	var results []*Pair
+
+	tx := func(tx *bbolt.Tx) error {
+		collection, b, mapping, err := db.getCollectionBucketMapping(tx, collectionName, true)
+		if err != nil {
+			return err
+		}
+
+		// Retrieve knn results from index
+		resultIds := collection.idx.Search(vec, k)
+
+		results := make([]*Pair, len(resultIds))
+
+		// Get vector and meta data for each knn result
+		for _, id := range resultIds {
+			key := mapping.Get(IntToBytes(int(id)))
+			if key == nil {
+				break
+			}
+
+			value := Value{}
+			data := b.Get(key)
+			if data == nil {
+				break
+			}
+			err := FromBytes(data, value)
+			if err != nil {
+				break
+			}
+
+			results = append(results, &Pair{
+				string(key),
+				value,
+			})
+		}
+
+		return nil
+	}
+
+	if err := db.kv.View(tx); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+// Helpful utility function that pops up in delete and put
+func (db *DB) getCollectionBucketMapping(tx *bbolt.Tx, collectionName string, loadIdx bool) (*Collection, *bbolt.Bucket, *bbolt.Bucket, error) {
+	collection, err := db.GetCollection(collectionName, loadIdx)
+	if err != nil {
+		return nil, nil, nil, errors.New(fmt.Sprintf("collection %s does not exist", collectionName))
+	}
+
+	// Get associated on disk bucket for collection
+	b := tx.Bucket([]byte(collectionName))
+	if b == nil {
+		return nil, nil, nil, errors.New(fmt.Sprintf("collection %s does not exist", collectionName))
+	}
+
+	// Retrive index mapping for collection
+	mapping := b.Bucket([]byte(mappingKey))
+	if mapping == nil {
+		return nil, nil, nil, errors.New(fmt.Sprintf("index mapping for collection %s does not exist", collectionName))
+	}
+
+	return collection, b, mapping, nil
 }

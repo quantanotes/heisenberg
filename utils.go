@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/gob"
 )
 
@@ -27,4 +28,10 @@ func FromBytes(data []byte, out interface{}) error {
 	}
 
 	return nil
+}
+
+func IntToBytes(val int) []byte {
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(val))
+	return b
 }

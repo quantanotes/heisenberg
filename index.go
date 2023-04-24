@@ -58,6 +58,11 @@ func (idx *Index) Put(vec []float32, id uint32) {
 	idx.hnsw.AddPoint(vec, id)
 }
 
+func (idx *Index) Search(vec []float32, k int) []uint32 {
+	ids, _ := idx.hnsw.SearchKNN(vec, k)
+	return ids
+}
+
 // Get next available index position without mutating index state
 func (idx *Index) Next() int {
 	if len(idx.config.freeList) > 0 {
@@ -80,4 +85,8 @@ func (idx *Index) MutNext() int {
 	id := idx.config.cursor
 	idx.config.cursor++
 	return id
+}
+
+func (idx *Index) Delete(id int) {
+	idx.config.freeList = append(idx.config.freeList, id)
 }
