@@ -6,11 +6,11 @@ import (
 )
 
 type indexConfig struct {
-	dim      int    // Dimension size of vectors
-	maxSize  int    // Max amount of vectors in index
-	space    string // Distance measure
-	cursor   int    // Position to insert vector
-	freeList []int  // Queue data structure to store deleted vectors
+	Dim      int    // Dimension size of vectors
+	MaxSize  int    // Max amount of vectors in index
+	Space    string // Distance measure
+	Cursor   int    // Position to insert vector
+	FreeList []int  // Queue data structure to store deleted vectors
 }
 
 type Index struct {
@@ -20,7 +20,7 @@ type Index struct {
 }
 
 func NewIndex(path string, config *indexConfig, m int, ef int) *Index {
-	hnsw := hnsw.New(config.dim, m, ef, rand.Int(), uint32(config.maxSize), config.space)
+	hnsw := hnsw.New(config.Dim, m, ef, rand.Int(), uint32(config.MaxSize), config.Space)
 	if hnsw == nil {
 		return nil
 	}
@@ -33,7 +33,7 @@ func NewIndex(path string, config *indexConfig, m int, ef int) *Index {
 }
 
 func LoadIndex(path string, config *indexConfig) *Index {
-	hnsw := hnsw.Load(path, config.dim, config.space)
+	hnsw := hnsw.Load(path, config.Dim, config.Space)
 	if hnsw == nil {
 		return nil
 	}
@@ -65,28 +65,28 @@ func (idx *Index) Search(vec []float32, k int) []uint32 {
 
 // Get next available index position without mutating index state
 func (idx *Index) Next() int {
-	if len(idx.config.freeList) > 0 {
-		id := idx.config.freeList[0]
+	if len(idx.config.FreeList) > 0 {
+		id := idx.config.FreeList[0]
 		return id
 	}
 
-	id := idx.config.cursor
+	id := idx.config.Cursor
 	return id
 }
 
 // Get next available index position and mutate index state
 func (idx *Index) MutNext() int {
-	if len(idx.config.freeList) > 0 {
-		id := idx.config.freeList[0]
-		idx.config.freeList = idx.config.freeList[0:]
+	if len(idx.config.FreeList) > 0 {
+		id := idx.config.FreeList[0]
+		idx.config.FreeList = idx.config.FreeList[0:]
 		return id
 	}
 
-	id := idx.config.cursor
-	idx.config.cursor++
+	id := idx.config.Cursor
+	idx.config.Cursor++
 	return id
 }
 
 func (idx *Index) Delete(id int) {
-	idx.config.freeList = append(idx.config.freeList, id)
+	idx.config.FreeList = append(idx.config.FreeList, id)
 }

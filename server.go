@@ -12,7 +12,7 @@ type Server struct {
 
 func NewServer(db *DB) *Server {
 	return &Server{
-		db: db,
+		db,
 	}
 }
 
@@ -23,18 +23,18 @@ func (s *Server) Run() {
 	http.HandleFunc("/get/", s.handleGet)
 	http.HandleFunc("/del/", s.handleDel)
 	fmt.Println("Starting server on :420")
-	http.ListenAndServe(":420", nil)
+	http.ListenAndServe("localhost:420", nil)
 }
 
 func (s *Server) handleNewCollection(w http.ResponseWriter, r *http.Request) {
-	var b *struct {
+	b := &struct {
 		Name  string `json:"name"`
 		Dim   int    `json:"dim"`
 		Size  int    `json:"size"`
 		Space string `json:"space"`
 		M     int    `json:"m"`
 		Ef    int    `json:"ef"`
-	}
+	}{}
 
 	err := json.NewDecoder(r.Body).Decode(b)
 	if err != nil {
@@ -52,9 +52,9 @@ func (s *Server) handleNewCollection(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleDelCollection(w http.ResponseWriter, r *http.Request) {
-	var b *struct {
+	b := &struct {
 		Name string `json:"name"`
-	}
+	}{}
 
 	err := json.NewDecoder(r.Body).Decode(b)
 	if err != nil {
@@ -73,10 +73,10 @@ func (s *Server) handleDelCollection(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handlePut(w http.ResponseWriter, r *http.Request) {
 	b := &struct {
-		Key        string    `json:"key"`
-		Vec        []float32 `json:"vec"`
-		Meta       any       `json:"meta"`
-		Collection string    `json:"collection"`
+		Key        string      `json:"key"`
+		Vec        []float32   `json:"vec"`
+		Meta       interface{} `json:"meta"`
+		Collection string      `json:"collection"`
 	}{}
 
 	err := json.NewDecoder(r.Body).Decode(b)
@@ -95,6 +95,8 @@ func (s *Server) handlePut(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("hello world")
+
 	b := &struct {
 		Key        string `json:"key"`
 		Collection string `json:"collection"`

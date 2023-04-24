@@ -15,7 +15,7 @@ const mappingKey = "__HEISENBERG_MAPPING" // Nested bucket which maps indices to
 
 const collectionMemSize = 3 // Max collection indices in memory
 
-type collectionsMemMap = orderedmap.OrderedMap[string, *Collection]
+type collectionsMemMap = *orderedmap.OrderedMap[string, *Collection]
 
 type Collection struct {
 	name string
@@ -34,10 +34,13 @@ func NewDB(path string) *DB {
 	if err != nil {
 		panic(err)
 	}
+
+	collections := orderedmap.New[string, *Collection]()
+
 	return &DB{
 		path,
 		kv,
-		orderedmap.OrderedMap[string, *Collection]{},
+		collections,
 	}
 }
 
