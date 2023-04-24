@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"os"
+	"path/filepath"
+)
 
 func main() {
-	fmt.Println("Hello World")
+	wd, _ := os.Getwd()
+	path := filepath.Join(wd, "/tests/")
+	db := NewDB(path)
+	server := NewServer(db)
+	server.Run()
 }

@@ -16,7 +16,7 @@ func NewServer(db *DB) *Server {
 	}
 }
 
-func (s *Server) StartServer() {
+func (s *Server) Run() {
 	http.HandleFunc("/newcollection/", s.handleNewCollection)
 	http.HandleFunc("/delcollection/", s.handleDelCollection)
 	http.HandleFunc("/put/", s.handlePut)

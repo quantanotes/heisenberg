@@ -30,11 +30,15 @@ type DB struct {
 }
 
 func NewDB(path string) *DB {
-	return nil
-}
-
-func LoadDB(path string) *DB {
-	return nil
+	kv, err := bbolt.Open(filepath.Join(path, "data.db"), 0666, nil)
+	if err != nil {
+		panic(err)
+	}
+	return &DB{
+		path,
+		kv,
+		orderedmap.OrderedMap[string, *Collection]{},
+	}
 }
 
 func (db *DB) Close() {
