@@ -44,6 +44,7 @@ func NewDB(path string) *DB {
 }
 
 func (db *DB) Close() {
+	// Save and close opened indices
 	for pair := db.collections.Oldest(); pair != nil; pair = pair.Next() {
 		pair.Value.idx.Save()
 		pair.Value.idx.Close()
