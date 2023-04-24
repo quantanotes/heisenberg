@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"heisenberg/hnsw"
+	"heisenberg/storage/hnsw"
 	"math/rand"
 )
 

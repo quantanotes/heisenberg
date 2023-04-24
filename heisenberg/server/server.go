@@ -3,14 +3,15 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"heisenberg/storage"
 	"net/http"
 )
 
 type Server struct {
-	db *DB
+	db *storage.DB
 }
 
-func NewServer(db *DB) *Server {
+func NewServer(db *storage.DB) *Server {
 	return &Server{
 		db,
 	}
@@ -95,8 +96,6 @@ func (s *Server) handlePut(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("hello world")
-
 	b := &struct {
 		Key        string `json:"key"`
 		Collection string `json:"collection"`
@@ -114,7 +113,7 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pair := Pair{
+	pair := storage.Pair{
 		b.Key,
 		*value,
 	}

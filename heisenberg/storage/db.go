@@ -3,6 +3,7 @@ package storage
 import (
 	"encoding/binary"
 	"fmt"
+	"heisenberg/utils"
 	"path/filepath"
 
 	orderedmap "github.com/wk8/go-ordered-map/v2"
@@ -71,7 +72,7 @@ func (db *DB) NewCollection(name string, dim int, size int, space string, m int,
 			0,
 			make([]int, 0),
 		}
-		configData, err := ToJson(config)
+		configData, err := utils.ToJson(config)
 		if err != nil {
 			return err
 		}
@@ -135,7 +136,7 @@ func (db *DB) LoadCollection(name string, loadIdx bool) (*Collection, error) {
 
 		// Read bytes in to config
 		config := &indexConfig{}
-		if err := FromJson(configData, &config); err != nil || config == nil {
+		if err := utils.FromJson(configData, &config); err != nil || config == nil {
 			return fmt.Errorf("invalid config for index %s does not exist", name)
 		}
 
@@ -223,7 +224,7 @@ func (db *DB) Get(key string, collectionName string) (*Value, error) {
 			return fmt.Errorf("key %s does not exist in collection %s", key, collectionName)
 		}
 
-		FromJson(data, value)
+		utils.FromJson(data, value)
 
 		return nil
 	}
@@ -247,7 +248,7 @@ func (db *DB) Put(key string, vec []float32, meta interface{}, collectionName st
 		// Previous iteration of data at key
 		prev := b.Get([]byte(key))
 		if prev != nil {
-			FromJson(prev, value)
+			utils.FromJson(prev, value)
 			if vec != nil {
 				value.Vec = vec
 			}
@@ -261,7 +262,7 @@ func (db *DB) Put(key string, vec []float32, meta interface{}, collectionName st
 		}
 
 		// Convert to-stored value in to bytes
-		data, err := ToJson(value)
+		data, err := utils.ToJson(value)
 		if err != nil {
 			return err
 		}
@@ -272,7 +273,7 @@ func (db *DB) Put(key string, vec []float32, meta interface{}, collectionName st
 		}
 
 		// Map index to key
-		idxInBytes := IntToBytes(value.Idx)
+		idxInBytes := utils.IntToBytes(value.Idx)
 		err = mapping.Put([]byte(key), idxInBytes)
 		if err != nil {
 			return err
@@ -305,7 +306,7 @@ func (db *DB) Delete(key string, collectionName string) error {
 		if data == nil {
 			return fmt.Errorf("key %s does not exist in collection %s", key, collectionName)
 		}
-		FromJson(data, value)
+		utils.FromJson(data, value)
 
 		// Delete mapping to key
 		idxInBytes := make([]byte, 4)
@@ -338,7 +339,7 @@ func (db *DB) Search(vec []float32, k int, collectionName string) ([]*Pair, erro
 
 		// Get vector and meta data for each knn result
 		for _, id := range resultIds {
-			key := mapping.Get(IntToBytes(int(id)))
+			key := mapping.Get(utils.IntToBytes(int(id)))
 			if key == nil {
 				break
 			}
@@ -348,7 +349,7 @@ func (db *DB) Search(vec []float32, k int, collectionName string) ([]*Pair, erro
 			if data == nil {
 				break
 			}
-			err := FromJson(data, value)
+			err := utils.FromJson(data, value)
 			if err != nil {
 				break
 			}
