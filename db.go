@@ -49,7 +49,7 @@ func (db *DB) Close() {
 }
 
 // Create a new collection of indexed vectors in the database. Returns instance of collection.
-func (db *DB) NewCollection(name string, dim int, size int, space string, m int, ef int, loadIdx bool) (*Collection, error) {
+func (db *DB) NewCollection(name string, dim int, size int, space string, m int, ef int) (*Collection, error) {
 	var collection *Collection
 	collection = nil
 
@@ -90,9 +90,7 @@ func (db *DB) NewCollection(name string, dim int, size int, space string, m int,
 			nil,
 			config,
 		}
-		if loadIdx {
-			idx = NewIndex(idxPath, config, m, ef)
-		}
+		idx = NewIndex(idxPath, config, m, ef)
 
 		collection = &Collection{
 			name,
@@ -108,10 +106,8 @@ func (db *DB) NewCollection(name string, dim int, size int, space string, m int,
 	}
 
 	// Add collection to mem map
-	if loadIdx {
-		db.collections.Set(name, collection)
-		db.popCollection()
-	}
+	db.collections.Set(name, collection)
+	db.popCollection()
 
 	return collection, nil
 }

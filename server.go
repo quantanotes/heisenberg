@@ -42,7 +42,7 @@ func (s *Server) handleNewCollection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = s.db.NewCollection(b.Name, b.Dim, b.Size, b.Space, b.M, b.Ef, true)
+	_, err = s.db.NewCollection(b.Name, b.Dim, b.Size, b.Space, b.M, b.Ef)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
