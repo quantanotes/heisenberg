@@ -8,6 +8,6 @@ type Value struct {
 }
 
 type Pair struct {
-	key   string
-	value Value
+	Key   string `json:"key"`
+	Value Value  `json:"value"`
 }

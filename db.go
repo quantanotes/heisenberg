@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -121,19 +120,19 @@ func (db *DB) LoadCollection(name string, loadIdx bool) (*Collection, error) {
 		// Get associated bucket with collection
 		b := tx.Bucket([]byte(name))
 		if b == nil {
-			return errors.New(fmt.Sprintf("collection %s does not exist", name))
+			return fmt.Errorf("collection %s does not exist", name)
 		}
 
 		// Get config of collection
 		configData := b.Get([]byte(configKey))
 		if configData == nil {
-			return errors.New(fmt.Sprintf("config for index %s does not exist", name))
+			return fmt.Errorf("config for index %s does not exist", name)
 		}
 
 		// Read bytes in to config
 		config := &indexConfig{}
 		if err := FromBytes(configData, &config); err != nil || config == nil {
-			return errors.New(fmt.Sprintf("invalid config for index %s does not exist", name))
+			return fmt.Errorf("invalid config for index %s does not exist", name)
 		}
 
 		// Load collection index from path/collection name.idx
@@ -212,11 +211,11 @@ func (db *DB) Get(key string, collectionName string) (*Value, error) {
 	tx := func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(collectionName))
 		if b != nil {
-			return errors.New(fmt.Sprintf("collection %s does not exist", collectionName))
+			return fmt.Errorf("collection %s does not exist", collectionName)
 		}
 		data := b.Get([]byte(key))
 		if data == nil {
-			return errors.New(fmt.Sprintf("key %s does not exist in collection %s", key, collectionName))
+			return fmt.Errorf("key %s does not exist in collection %s", key, collectionName)
 		}
 
 		FromBytes(data, value)
@@ -299,7 +298,7 @@ func (db *DB) Delete(key string, collectionName string) error {
 		value := &Value{}
 		data := b.Get([]byte(key))
 		if data == nil {
-			return errors.New(fmt.Sprintf("key %s does not exist in collection %s", key, collectionName))
+			return fmt.Errorf("key %s does not exist in collection %s", key, collectionName)
 		}
 		FromBytes(data, value)
 
@@ -369,19 +368,19 @@ func (db *DB) Search(vec []float32, k int, collectionName string) ([]*Pair, erro
 func (db *DB) getCollectionBucketMapping(tx *bbolt.Tx, collectionName string, loadIdx bool) (*Collection, *bbolt.Bucket, *bbolt.Bucket, error) {
 	collection, err := db.GetCollection(collectionName, loadIdx)
 	if err != nil {
-		return nil, nil, nil, errors.New(fmt.Sprintf("collection %s does not exist", collectionName))
+		return nil, nil, nil, fmt.Errorf("collection %s does not exist", collectionName)
 	}
 
 	// Get associated on disk bucket for collection
 	b := tx.Bucket([]byte(collectionName))
 	if b == nil {
-		return nil, nil, nil, errors.New(fmt.Sprintf("collection %s does not exist", collectionName))
+		return nil, nil, nil, fmt.Errorf("collection %s does not exist", collectionName)
 	}
 
 	// Retrive index mapping for collection
 	mapping := b.Bucket([]byte(mappingKey))
 	if mapping == nil {
-		return nil, nil, nil, errors.New(fmt.Sprintf("index mapping for collection %s does not exist", collectionName))
+		return nil, nil, nil, fmt.Errorf("index mapping for collection %s does not exist", collectionName)
 	}
 
 	return collection, b, mapping, nil

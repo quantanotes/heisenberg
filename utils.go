@@ -3,12 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/gob"
+	"encoding/json"
 )
 
 func ToBytes(data interface{}) ([]byte, error) {
 	buf := bytes.Buffer{}
-	enc := gob.NewEncoder(&buf)
+	enc := json.NewEncoder(&buf)
 
 	err := enc.Encode(data)
 	if err != nil {
@@ -18,16 +18,8 @@ func ToBytes(data interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func FromBytes(data []byte, out interface{}) error {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	err := dec.Decode(out)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func FromBytes(data []byte, obj interface{}) error {
+	return json.Unmarshal(data, obj)
 }
 
 func IntToBytes(val int) []byte {
