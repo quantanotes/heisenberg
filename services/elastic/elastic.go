@@ -14,21 +14,17 @@ var api *container.API // Scaleway container api
 
 // Create one heisenberg container per user
 func createContainer(usr string) error {
-	// No idea why the fuck Go makes me do this????
-	maxScale := new(uint32)
-	*maxScale = uint32(1)
-	memoryLimit := new(uint32)
-	*memoryLimit = uint32(128)
-	port := new(uint32)
-	*port = 420
+	var maxScale uint32 = 1
+	var memoryLimit uint32 = 128
+	var port uint32 = 420
 
 	// New container configuration
 	req := &container.CreateContainerRequest{
 		NamespaceID: "heisenberg",
 		Name:        usr, // Set id of container to username 1-1 user-container (will change)
-		MaxScale:    maxScale,
-		MemoryLimit: memoryLimit, // Container mem allocation in Mb
-		Port:        port,
+		MaxScale:    &maxScale,
+		MemoryLimit: &memoryLimit, // Container mem allocation in Mb
+		Port:        &port,
 		//RegistryImage: ,
 	}
 

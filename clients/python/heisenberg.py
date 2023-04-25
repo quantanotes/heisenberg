@@ -55,3 +55,14 @@ class Heisenberg:
         headers = {'Content-Type': 'application/json', 'api_key': self.api_key}
         r = requests.post(f'{self.url}/del/', json=data, headers=headers)
         r.raise_for_status()
+        
+    def search(self, vec: list[float], k: int, collection: str) -> dict:
+        data = {
+            'vec': vec,
+            'k': k,
+            'collection': collection,
+        }
+        headers = {'Content-Type': 'application/json', 'api_key': self.api_key}
+        r = requests.post(f'{self.url}/search/', json=data, headers=headers)
+        r.raise_for_status()
+        return r.json()['value']

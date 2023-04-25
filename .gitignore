@@ -28,3 +28,7 @@ tests
 
 # env variables
 *.env
+
+datafiles
+
+__pycache__

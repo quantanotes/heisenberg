@@ -295,11 +295,6 @@ func (db *DB) Delete(key string, collectionName string) error {
 			return err
 		}
 
-		// Delete key from key value store
-		if err = b.Delete([]byte(key)); err != nil {
-			return err
-		}
-
 		// Get previous value at key
 		value := &Value{}
 		data := b.Get([]byte(key))
@@ -307,6 +302,11 @@ func (db *DB) Delete(key string, collectionName string) error {
 			return fmt.Errorf("key %s does not exist in collection %s", key, collectionName)
 		}
 		utils.FromJson(data, value)
+
+		// Delete key from key value store
+		if err = b.Delete([]byte(key)); err != nil {
+			return err
+		}
 
 		// Delete mapping to key
 		idxInBytes := make([]byte, 4)

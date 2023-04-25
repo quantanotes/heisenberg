@@ -23,6 +23,7 @@ func (s *Server) Run() {
 	http.HandleFunc("/put/", s.handlePut)
 	http.HandleFunc("/get/", s.handleGet)
 	http.HandleFunc("/del/", s.handleDel)
+	http.HandleFunc("/search/", s.handleSearch)
 	fmt.Println("Starting server on :420")
 	http.ListenAndServe("localhost:420", nil)
 }
@@ -147,4 +148,34 @@ func (s *Server) handleDel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(200)
+}
+
+func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
+	b := &struct {
+		Vec        []float32 `json:"vec"`
+		K          int       `json:"k"`
+		Collection string    `json:"collection"`
+	}{}
+
+	err := json.NewDecoder(r.Body).Decode(b)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	res, err := s.db.Search(b.Vec, b.K, b.Collection)
+
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	data, err := json.Marshal(res)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.Write(data)
 }
