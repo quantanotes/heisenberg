@@ -1,0 +1,17 @@
+FROM golang:latest
+
+WORKDIR /app
+
+COPY . .
+
+RUN apt-get update && \
+    apt-get install -y gcc libc6-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV CGO_ENABLED=1
+
+RUN go build -tags 'cgo' -o heisenberg .
+
+EXPOSE 420
+
+CMD ["./heisenberg"]
