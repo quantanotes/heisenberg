@@ -115,8 +115,8 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pair := storage.Pair{
-		b.Key,
-		*value,
+		Key:   b.Key,
+		Value: *value,
 	}
 
 	data, err := json.Marshal(pair)
