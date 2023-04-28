@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package="heisenberg/internal/store";
+
+package store;
+
+message Empty {}
+
+message Pong {
+    message Service {
+        uint32 code = 1;
+        string name = 2;
+    }
+    Service service = 1;
+}
+
+service Store {
+    rpc Ping(Empty) returns (Pong) {}
+    rpc Get(Empty) returns (Empty) {}
+}
