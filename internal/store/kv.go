@@ -13,19 +13,35 @@ type kv struct {
 	txPool map[string]*bbolt.Tx // Pending transactions
 }
 
-func NewKv() (*kv, error) {
+func newKv() (*kv, error) {
 	return nil, nil
 }
 
-func LoadKv() (*kv, error) {
+func loadKv() (*kv, error) {
 	return nil, nil
 }
 
-func CloseKv() {
-	return
+func (kv *kv) closeKv() {
+	kv.db.Close()
 }
 
-func (k *kv) Put(key []byte, value []byte, collection []byte) error {
+func (kv *kv) get(key []byte, collection []byte) ([]byte, error) {
+	var value []byte
+	tx := func(tx *bbolt.Tx) error {
+		b := tx.Bucket(collection)
+		if b == nil {
+			return internal.InvalidCollectionError(collection)
+		}
+		value = b.Get(key)
+		if value == nil {
+			return internal.InvalidKeyError(key, collection)
+		}
+		return nil
+	}
+	return value, kv.db.View(tx)
+}
+
+func (kv *kv) put(key []byte, value []byte, collection []byte) error {
 	tx := func(tx *bbolt.Tx) error {
 		b := tx.Bucket(collection)
 		if b == nil {
@@ -34,9 +50,20 @@ func (k *kv) Put(key []byte, value []byte, collection []byte) error {
 		b.Put(key, value)
 		return nil
 	}
-	return k.db.Update(tx)
+	return kv.db.Update(tx)
 }
 
-func BeginTx() {
+func (kv *kv) delete(key []byte, collection []byte) error {
+	tx := func(tx *bbolt.Tx) error {
+		b := tx.Bucket(collection)
+		if b == nil {
+			return internal.InvalidCollectionError(collection)
+		}
+		return b.Delete(key)
+	}
+	return kv.db.Update(tx)
+}
+
+func beginTx() {
 
 }

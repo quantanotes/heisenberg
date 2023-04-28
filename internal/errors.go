@@ -11,6 +11,7 @@ const (
 	ConnectionErrorCode
 	IncorrectServiceErrorCode
 	InvalidCollectionErrorCode
+	InvalidKeyErrorCode
 )
 
 func ConnectionError(addr string, args ...interface{}) error {
@@ -32,6 +33,19 @@ func IncorrectServiceError(expected Service, recieved Service, args ...interface
 	)
 }
 
-func InvalidCollectionError(collection []byte) error {
-	return fmt.Errorf("%d: collection %s does not exist, trace: %v", string(collection))
+func InvalidCollectionError(collection []byte, args ...interface{}) error {
+	return fmt.Errorf(
+		"%d: collection %s does not exist, trace: %v",
+		string(collection),
+		args,
+	)
+}
+
+func InvalidKeyError(key []byte, collection []byte, args ...interface{}) error {
+	return fmt.Errorf(
+		"%d: key %s does not exist in collection %s, trace: %v",
+		string(key),
+		string(collection),
+		args,
+	)
 }
