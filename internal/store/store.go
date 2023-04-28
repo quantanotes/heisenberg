@@ -7,25 +7,25 @@ import (
 )
 
 // Base key-value storage
-type kv struct {
+type store struct {
 	path   string               // Storage location
 	db     *bbolt.DB            // BoltDB storage backend
 	txPool map[string]*bbolt.Tx // Pending transactions
 }
 
-func newKv() (*kv, error) {
+func newKv() (*store, error) {
 	return nil, nil
 }
 
-func loadKv() (*kv, error) {
+func loadKv() (*store, error) {
 	return nil, nil
 }
 
-func (kv *kv) closeKv() {
-	kv.db.Close()
+func (s *store) closeKv() {
+	s.db.Close()
 }
 
-func (kv *kv) get(key []byte, collection []byte) ([]byte, error) {
+func (s *store) get(key []byte, collection []byte) ([]byte, error) {
 	var value []byte
 	tx := func(tx *bbolt.Tx) error {
 		b := tx.Bucket(collection)
@@ -38,10 +38,10 @@ func (kv *kv) get(key []byte, collection []byte) ([]byte, error) {
 		}
 		return nil
 	}
-	return value, kv.db.View(tx)
+	return value, s.db.View(tx)
 }
 
-func (kv *kv) put(key []byte, value []byte, collection []byte) error {
+func (s *store) put(key []byte, value []byte, collection []byte) error {
 	tx := func(tx *bbolt.Tx) error {
 		b := tx.Bucket(collection)
 		if b == nil {
@@ -50,10 +50,10 @@ func (kv *kv) put(key []byte, value []byte, collection []byte) error {
 		b.Put(key, value)
 		return nil
 	}
-	return kv.db.Update(tx)
+	return s.db.Update(tx)
 }
 
-func (kv *kv) delete(key []byte, collection []byte) error {
+func (s *store) delete(key []byte, collection []byte) error {
 	tx := func(tx *bbolt.Tx) error {
 		b := tx.Bucket(collection)
 		if b == nil {
@@ -61,7 +61,7 @@ func (kv *kv) delete(key []byte, collection []byte) error {
 		}
 		return b.Delete(key)
 	}
-	return kv.db.Update(tx)
+	return s.db.Update(tx)
 }
 
 func beginTx() {

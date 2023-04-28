@@ -31,7 +31,6 @@ func (s *shard) RemoveShard(addr string) error {
 			return nil
 		}
 	}
-
 	return fmt.Errorf("")
 }
 
