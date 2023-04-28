@@ -10,6 +10,7 @@ const (
 	NullError errorCode = iota
 	ConnectionErrorCode
 	IncorrectServiceErrorCode
+	InvalidCollectionErrorCode
 )
 
 func ConnectionError(addr string, args ...interface{}) error {
@@ -29,4 +30,8 @@ func IncorrectServiceError(expected Service, recieved Service, args ...interface
 		recieved.String(),
 		args,
 	)
+}
+
+func InvalidCollectionError(collection []byte) error {
+	return fmt.Errorf("%d: collection %s does not exist, trace: %v", string(collection))
 }
