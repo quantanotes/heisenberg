@@ -7,16 +7,16 @@ import (
 
 // Interface to handle sharding via consistent hashing
 type shard struct {
-	shards  []string                 // Shard id
-	ring    ring                     // Circular data structure for consistent hashing
-	clients *map[string]*StoreClient // Shard clients
+	shards   []string             // Shard id
+	replicas *map[string]*replica // Shard clients with replication management
+	ring     ring                 // Circular data structure for consistent hashing
 }
 
 func (s *shard) addShard(id string) error {
 	if s.hasShard(id) {
 		return fmt.Errorf("")
 	}
-	old := *s
+	old := *s // Create copy of old shard state for resharding
 	s.shards = append(s.shards, id)
 	s.ring.addNode(id)
 	s.reshard(old)
@@ -24,7 +24,7 @@ func (s *shard) addShard(id string) error {
 }
 
 func (s *shard) removeShard(id string) error {
-	old := *s
+	old := *s // Create copy of old shard state for resharding
 	for i, sid := range s.shards {
 		if sid == id {
 			s.shards = append(s.shards[:i], s.shards[i+1:]...)
