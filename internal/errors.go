@@ -36,6 +36,7 @@ func IncorrectServiceError(expected Service, recieved Service, args ...interface
 func InvalidCollectionError(collection []byte, args ...interface{}) error {
 	return fmt.Errorf(
 		"%d: collection %s does not exist, trace: %v",
+		InvalidCollectionErrorCode,
 		string(collection),
 		args,
 	)
@@ -44,6 +45,7 @@ func InvalidCollectionError(collection []byte, args ...interface{}) error {
 func InvalidKeyError(key []byte, collection []byte, args ...interface{}) error {
 	return fmt.Errorf(
 		"%d: key %s does not exist in collection %s, trace: %v",
+		InvalidKeyErrorCode,
 		string(key),
 		string(collection),
 		args,
