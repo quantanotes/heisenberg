@@ -10,6 +10,7 @@ import (
 )
 
 type Client struct {
+	addr   string
 	Conn   *drpcconn.Conn
 	Client pb.DRPCServiceClient
 }
@@ -22,6 +23,7 @@ func NewClient(ctx context.Context, addr string, service Service) (*Client, erro
 	}
 
 	client := &Client{
+		addr,
 		conn,
 		pb.NewDRPCServiceClient(conn),
 	}
@@ -48,17 +50,12 @@ func connect(addr string) (*drpcconn.Conn, error) {
 }
 
 func (c *Client) validateClient(ctx context.Context, expected Service) error {
-	pong := c.ping(ctx)
-	if pong.Code != expected.Code {
-		return IncorrectServiceError(expected, pong)
-	}
-	return nil
-}
-
-func (c *Client) ping(ctx context.Context) Service {
 	pong, err := c.Client.Ping(ctx, nil)
 	if err != nil {
-		return NoneService
+		return ConnectionError(c.addr)
 	}
-	return Service{Code: pong.Service.Code, Name: pong.Service.Name}
+	if pong.Service != uint32(expected) {
+		return IncorrectServiceError(expected, Service(pong.Service))
+	}
+	return nil
 }

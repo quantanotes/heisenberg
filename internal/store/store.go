@@ -2,8 +2,10 @@ package store
 
 import (
 	"heisenberg/internal"
+	"heisenberg/internal/pb"
 
 	"go.etcd.io/bbolt"
+	"google.golang.org/protobuf/proto"
 )
 
 // Base key-value storage
@@ -25,20 +27,34 @@ func (s *store) closeKv() {
 	s.db.Close()
 }
 
-func (s *store) get(key []byte, collection []byte) ([]byte, error) {
-	var value []byte
+func (s *store) get(key []byte, collection []byte) (*pb.Value, error) {
+	var raw []byte
 	tx := func(tx *bbolt.Tx) error {
 		b := tx.Bucket(collection)
 		if b == nil {
 			return internal.InvalidCollectionError(collection)
 		}
-		value = b.Get(key)
-		if value == nil {
+
+		raw = b.Get(key)
+		if raw == nil {
 			return internal.InvalidKeyError(key, collection)
 		}
+
 		return nil
 	}
-	return value, s.db.View(tx)
+
+	err := s.db.View(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	value := &pb.Value{}
+	err = proto.Unmarshal(raw, value)
+	if err != nil {
+		return nil, internal.CorruptValueError(key)
+	}
+
+	return value, nil
 }
 
 func (s *store) put(key []byte, value []byte, collection []byte) error {

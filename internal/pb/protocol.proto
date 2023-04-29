@@ -12,7 +12,11 @@ message ServiceType {
 }
 
 message Pong {
-    ServiceType service = 1;
+    string id = 1;
+    bool master = 2;
+    uint32 service = 3;
+    optional uint32 shard = 4;
+    optional uint32 replica = 5;
 }
 
 message Value {

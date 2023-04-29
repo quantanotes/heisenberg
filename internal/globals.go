@@ -1,17 +1,24 @@
 package internal
 
-type Service struct {
-	Code uint32
-	Name string
-}
+type Service int
 
-var (
-	NoneService  = Service{Code: 0, Name: "NoneService"}
-	QueryService = Service{Code: 1, Name: "QueryService"}
-	IndexService = Service{Code: 2, Name: "IndexService"}
-	StoreService = Service{Code: 3, Name: "StoreService"}
+const (
+	NoneService Service = iota
+	QueryService
+	IndexService
+	StoreService
 )
 
+var serviceNames = [...]string{
+	"NoneService",
+	"QueryService",
+	"IndexService",
+	"StoreService",
+}
+
 func (s Service) String() string {
-	return s.Name
+	if s < NoneService || s > StoreService {
+		return "NoneService"
+	}
+	return serviceNames[s]
 }

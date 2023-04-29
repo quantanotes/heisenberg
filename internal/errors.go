@@ -8,10 +8,14 @@ type errorCode uint
 
 const (
 	NullError errorCode = iota
+
 	ConnectionErrorCode
+	InvalidServiceErrorCode
 	IncorrectServiceErrorCode
+
 	InvalidCollectionErrorCode
 	InvalidKeyErrorCode
+	CorruptValueErrorCode
 )
 
 func ConnectionError(addr string, args ...interface{}) error {
@@ -19,6 +23,14 @@ func ConnectionError(addr string, args ...interface{}) error {
 		"%d: connection to address %s failed, trace: %v",
 		ConnectionErrorCode,
 		addr,
+		args,
+	)
+}
+
+func InvalidServiceError(args ...interface{}) error {
+	return fmt.Errorf(
+		"%d: service is invalid, trace: %v",
+		InvalidServiceErrorCode,
 		args,
 	)
 }
@@ -48,6 +60,15 @@ func InvalidKeyError(key []byte, collection []byte, args ...interface{}) error {
 		InvalidKeyErrorCode,
 		string(key),
 		string(collection),
+		args,
+	)
+}
+
+func CorruptValueError(key []byte, args ...interface{}) error {
+	return fmt.Errorf(
+		"%d: corrupt value at key %s, trace: %v",
+		CorruptValueErrorCode,
+		string(key),
 		args,
 	)
 }

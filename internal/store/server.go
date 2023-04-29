@@ -2,6 +2,8 @@ package store
 
 import (
 	"context"
+	"fmt"
+	"heisenberg/internal"
 	"heisenberg/internal/pb"
 )
 
@@ -10,7 +12,37 @@ type StoreServer struct {
 	shardId string
 	master  bool
 	store   store
-	shard   shard
+	shard   *shard
+	replica *replica
+}
+
+func (s *StoreServer) Close() {
+
+}
+
+func (s *StoreServer) ConnectNode(ctx context.Context, req string) error {
+	c, err := NewStoreClient(ctx, req)
+	if err != nil {
+		return fmt.Errorf("ConnectNode error %v", err)
+	}
+
+	pong, err := c.Ping(ctx)
+	if err != nil {
+		return fmt.Errorf("ConnectNode error %v", err)
+	}
+
+	switch pong.Service {
+	case uint32(internal.StoreService):
+		// If master add as shard, if shard add as replica
+		if s.master {
+
+		} else {
+
+		}
+		return nil
+	default:
+		return internal.InvalidServiceError()
+	}
 }
 
 func (s *StoreServer) Get(ctx context.Context, req *pb.Key) (*pb.Value, error) {
@@ -22,26 +54,24 @@ func (s *StoreServer) Get(ctx context.Context, req *pb.Key) (*pb.Value, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		// Select random replica of given shard
 		client, err := shard.choose()
 		if err != nil {
 			return nil, err
 		}
+
 		res = client.Get(key, collection)
 	} else {
-		val := s.store.get(key, collection)
-		res = pb.Value{
-			val.Idx,
-			val.Vec,
-			val.Meta,
+		var err error
+		res, err = s.store.get(key, collection)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return res, nil
 }
 
 func (s *StoreServer) Put() {
-
-}
-
-func (s *StoreServer) Close() {
 
 }
