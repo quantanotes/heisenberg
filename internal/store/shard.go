@@ -60,6 +60,8 @@ func (s *shard) reshard(old shard) error {
 	return nil
 }
 
-func (s *shard) GetReplicas() *map[string]*replica {
+func (s *shard) getReplicas() *map[string]*replica {
 	return s.replicas
 }
+
+func 

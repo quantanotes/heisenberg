@@ -33,9 +33,12 @@ func (s *StoreServer) ConnectNode(ctx context.Context, req string) error {
 
 	switch pong.Service {
 	case uint32(internal.StoreService):
+		shard := pong.Shard
+		replica := pong.Replica
+
 		// If master add as shard, if shard add as replica
 		if s.master {
-
+			s.shard.addReplica()
 		} else {
 
 		}
@@ -54,13 +57,11 @@ func (s *StoreServer) Get(ctx context.Context, req *pb.Key) (*pb.Value, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		// Select random replica of given shard
 		client, err := shard.choose()
 		if err != nil {
 			return nil, err
 		}
-
 		res = client.Get(key, collection)
 	} else {
 		var err error
