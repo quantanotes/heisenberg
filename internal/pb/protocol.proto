@@ -15,33 +15,26 @@ message Pong {
     ServiceType service = 1;
 }
 
-message Pair {
-    bytes key = 1;
-    Value value = 2;
-}
-
-message Key {
-    bytes key = 1;
-}
-
 message Value {
     uint32 index = 1;
     repeated float vec = 2 [packed=true];
     bytes meta = 3;
 }
 
-message Vec {
-    bytes key = 1;
-    repeated float vec = 2 [packed=true];
+message Key {
+    bytes collection = 1;
+    bytes key = 2;
 }
 
-message Meta {
+message Pair {
     bytes key = 1;
-    repeated float vec = 2;
+    Value value = 2;
 }
 
-message Transaction {
-    bytes id = 1;
+message Item {
+    bytes collection = 1;
+    bytes key = 2;
+    Value value = 3;
 }
 
 service Service {

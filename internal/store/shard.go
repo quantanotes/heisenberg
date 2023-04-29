@@ -36,14 +36,15 @@ func (s *shard) removeShard(id string) error {
 	return fmt.Errorf("")
 }
 
-func (s *shard) getShard(key []byte) (string, error) {
+func (s *shard) getShard(key []byte) (*replica, error) {
 	id := s.ring.getNode(key)
 	if id == "" {
 		err := "shards size is none"
 		log.Error(err, nil)
-		return id, fmt.Errorf(err)
+		return nil, fmt.Errorf(err)
 	}
-	return id, nil
+	replica := (*s.replicas)[id]
+	return replica, nil
 }
 
 func (s *shard) hasShard(id string) bool {
@@ -57,4 +58,8 @@ func (s *shard) hasShard(id string) bool {
 
 func (s *shard) reshard(old shard) error {
 	return nil
+}
+
+func (s *shard) GetReplicas() *map[string]*replica {
+	return s.replicas
 }

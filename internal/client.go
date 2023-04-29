@@ -10,8 +10,8 @@ import (
 )
 
 type Client struct {
-	conn   *drpcconn.Conn
-	client pb.DRPCServiceClient
+	Conn   *drpcconn.Conn
+	Client pb.DRPCServiceClient
 }
 
 // Base constructor for clients
@@ -35,7 +35,7 @@ func NewClient(ctx context.Context, addr string, service Service) (*Client, erro
 }
 
 func (c *Client) Close() {
-	c.conn.Close()
+	c.Conn.Close()
 }
 
 func connect(addr string) (*drpcconn.Conn, error) {
@@ -56,7 +56,7 @@ func (c *Client) validateClient(ctx context.Context, expected Service) error {
 }
 
 func (c *Client) ping(ctx context.Context) Service {
-	pong, err := c.client.Ping(ctx, nil)
+	pong, err := c.Client.Ping(ctx, nil)
 	if err != nil {
 		return NoneService
 	}
