@@ -2,13 +2,16 @@ package internal
 
 import (
 	"context"
-	"heisenberg/store"
 	"net"
 
 	"storj.io/drpc/drpcconn"
+	
+	"heisenberg/store"
+	"heisenberg/internal"
 )
 
 type Client interface {
+
 	Ping(ctx context.Context) Service
 }
 
@@ -20,15 +23,15 @@ func NewClient(ctx context.Context, addr string, service Service) (Client, error
 
 	var client Client
 	switch service {
-	case QueryService:
-		client = nil
-	case IndexService:
-		client = nil
-	case StoreService:
-		client = &store.StoreClient{
-			conn:   conn,
-			client: store.NewDRPCStoreClient(conn),
-		}
+		case QueryService:
+			client = nil
+		case IndexService:
+			client = nil
+		case StoreService:
+			client = &store.StoreClient{
+				conn:   conn,
+				client: store.NewDRPCStoreClient(conn),
+			}
 	default:
 		return nil, IncorrectServiceError(service, NoneService)
 	}
