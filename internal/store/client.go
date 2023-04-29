@@ -3,30 +3,14 @@ package store
 import (
 	"context"
 	"heisenberg/internal"
-
-	"storj.io/drpc/drpcconn"
 )
 
-type StoreClient struct {
-	conn   *drpcconn.Conn
-	client DRPCStoreClient
-}
+type StoreClient = internal.Client
 
 func NewStoreClient(ctx context.Context, addr string) (*StoreClient, error) {
-	sc := &StoreClient{}
-	var err error
-	sc, err = internal.NewClient(ctx, addr, internal.StoreService)
-
-}
-
-func (sc *StoreClient) Close() {
-	sc.conn.Close()
-}
-
-func (sc *StoreClient) Ping(ctx context.Context) internal.Service {
-	pong, err := sc.client.Ping(ctx, nil)
+	c, err := internal.NewClient(ctx, addr, internal.StoreService)
 	if err != nil {
-		return internal.NoneService
+		return nil, err
 	}
-	return internal.Service{Code: pong.Service.Code, Name: pong.Service.Name}
+	return c, err
 }

@@ -2,38 +2,31 @@ package internal
 
 import (
 	"context"
-	"heisenberg/store"
 	"net"
+
+	"heisenberg/internal/pb"
 
 	"storj.io/drpc/drpcconn"
 )
 
-type Client interface {
-	Ping(ctx context.Context) Service
+type Client struct {
+	conn   *drpcconn.Conn
+	client pb.DRPCServiceClient
 }
 
-func NewClient(ctx context.Context, addr string, service Service) (Client, error) {
-	conn, err := ConnectClient(addr)
+// Base constructor for clients
+func NewClient(ctx context.Context, addr string, service Service) (*Client, error) {
+	conn, err := connect(addr)
 	if err != nil {
 		return nil, err
 	}
 
-	var client Client
-	switch service {
-	case QueryService:
-		client = nil
-	case IndexService:
-		client = nil
-	case StoreService:
-		client = &store.StoreClient{
-			conn:   conn,
-			client: store.NewDRPCStoreClient(conn),
-		}
-	default:
-		return nil, IncorrectServiceError(service, NoneService)
+	client := &Client{
+		conn,
+		pb.NewDRPCServiceClient(conn),
 	}
 
-	err = ValidateClient(client, service, ctx)
+	err = client.validateClient(ctx, service)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +34,11 @@ func NewClient(ctx context.Context, addr string, service Service) (Client, error
 	return client, nil
 }
 
-func ConnectClient(addr string) (*drpcconn.Conn, error) {
+func (c *Client) Close() {
+	c.conn.Close()
+}
+
+func connect(addr string) (*drpcconn.Conn, error) {
 	tr, err := net.Dial("tcp", addr)
 	if err != nil {
 		return nil, ConnectionError(addr, err)
@@ -50,10 +47,18 @@ func ConnectClient(addr string) (*drpcconn.Conn, error) {
 	return conn, nil
 }
 
-func ValidateClient(c Client, expected Service, ctx context.Context) error {
-	pong := c.Ping(ctx)
+func (c *Client) validateClient(ctx context.Context, expected Service) error {
+	pong := c.ping(ctx)
 	if pong.Code != expected.Code {
 		return IncorrectServiceError(expected, pong)
 	}
 	return nil
+}
+
+func (c *Client) ping(ctx context.Context) Service {
+	pong, err := c.client.Ping(ctx, nil)
+	if err != nil {
+		return NoneService
+	}
+	return Service{Code: pong.Service.Code, Name: pong.Service.Name}
 }

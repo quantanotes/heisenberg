@@ -1,6 +1,7 @@
-package internal
+package query
 
 import (
+	"context"
 	"heisenberg/internal/index"
 	"heisenberg/internal/store"
 )
@@ -10,13 +11,13 @@ type QueryServer struct {
 	storeClient *store.StoreClient
 }
 
-func NewQueryServer(indexAddr string, storeAddr string) *QueryServer {
-	indexClient, err := index.NewIndexClient(indexAddr)
+func NewQueryServer(ctx context.Context, indexAddr string, storeAddr string) *QueryServer {
+	indexClient, err := index.NewIndexClient(ctx, indexAddr)
 	if err != nil {
 		return nil
 	}
 
-	storeClient, err := store.NewStoreClient(storeAddr)
+	storeClient, err := store.NewStoreClient(ctx, storeAddr)
 	if err != nil {
 		return nil
 	}

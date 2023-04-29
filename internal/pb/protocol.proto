@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "/pb";
+
+message Empty {}
+
+message ServiceType {
+    uint32 code = 1;
+    string name = 2;
+}
+
+message Pong {
+    ServiceType service = 1;
+}
+
+message Pair {
+    bytes key = 1;
+    Value value = 2;
+}
+
+message Key {
+    bytes key = 1;
+}
+
+message Value {
+    uint32 index = 1;
+    repeated float vec = 2 [packed=true];
+    bytes meta = 3;
+}
+
+message Vec {
+    bytes key = 1;
+    repeated float vec = 2 [packed=true];
+}
+
+message Meta {
+    bytes key = 1;
+    repeated float vec = 2;
+}
+
+message Transaction {
+    bytes id = 1;
+}
+
+service Service {
+    rpc Ping(Empty) returns (Pong) {}
+    rpc Get(Key) returns (Pair) {}
+    rpc Put(Pair) returns (Empty) {}
+    rpc Delete(Key) returns (Empty) {}
+}
