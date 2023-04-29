@@ -15,6 +15,7 @@ type BaseClient struct {
 
 // NewBaseClient creates a new BaseClient
 func NewBaseClient(ctx context.Context, addr string, service Service) (*BaseClient, error) {
+	// Defien the new baseclient return 
 	bc := &BaseClient{}
 
 	// Get the connection
@@ -38,6 +39,7 @@ func (bc *BaseClient) Close() {
 	(*bc.conn).Close()
 }
 
+// Wrapper for the Ping function
 func (bc *BaseClient) Ping(ctx context.Context) Service {
 	pong, err := bc.client.Ping(ctx, nil)
 	if err != nil {
