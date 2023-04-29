@@ -23,7 +23,7 @@ func (ic *IndexClient) Close() {
 	ic.base.Close()
 }
 
-func (ic *StoreClient) Ping(ctx context.Context) internal.Service {
+func (ic *IndexClient) Ping(ctx context.Context) internal.Service {
 	return ic.base.Ping(ctx)
 }
 
