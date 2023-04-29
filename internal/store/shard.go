@@ -7,39 +7,54 @@ import (
 
 // Interface to handle sharding via consistent hashing
 type shard struct {
-	shards []string // Shard addresses
-	ring   ring     // Circular data structure for consistent hashing
+	shards  []string                 // Shard id
+	ring    ring                     // Circular data structure for consistent hashing
+	clients *map[string]*StoreClient // Shard clients
 }
 
-func (s *shard) AddShard(addr string) error {
-
-	// TODO: Implement resharding
-
-	s.shards = append(s.shards, addr)
-	s.ring.addNode(addr)
+func (s *shard) addShard(id string) error {
+	if s.hasShard(id) {
+		return fmt.Errorf("")
+	}
+	old := *s
+	s.shards = append(s.shards, id)
+	s.ring.addNode(id)
+	s.reshard(old)
 	return nil
 }
 
-func (s *shard) RemoveShard(addr string) error {
-
-	// TODO: Implement resharding
-
-	for i, sa := range s.shards {
-		if sa == addr {
+func (s *shard) removeShard(id string) error {
+	old := *s
+	for i, sid := range s.shards {
+		if sid == id {
 			s.shards = append(s.shards[:i], s.shards[i+1:]...)
-			s.ring.removeNode(addr)
+			s.ring.removeNode(id)
+			s.reshard(old)
 			return nil
 		}
 	}
 	return fmt.Errorf("")
 }
 
-func (s *shard) GetShard(key []byte) (string, error) {
-	addr := s.ring.getNode(key)
-	if addr == "" {
+func (s *shard) getShard(key []byte) (string, error) {
+	id := s.ring.getNode(key)
+	if id == "" {
 		err := "shards size is none"
 		log.Error(err, nil)
-		return addr, fmt.Errorf(err)
+		return id, fmt.Errorf(err)
 	}
-	return addr, nil
+	return id, nil
+}
+
+func (s *shard) hasShard(id string) bool {
+	for _, sid := range s.shards {
+		if sid == id {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *shard) reshard(old shard) error {
+	return nil
 }

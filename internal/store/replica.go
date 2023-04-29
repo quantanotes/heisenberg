@@ -1,3 +1,5 @@
 package store
 
-type replica struct{}
+type replica struct {
+	clients *map[string]*StoreClient
+}
