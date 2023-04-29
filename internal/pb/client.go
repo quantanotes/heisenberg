@@ -14,7 +14,7 @@ type BaseClient struct {
 }
 
 // NewBaseClient creates a new BaseClient
-func NewBaseClient(ctx context.Context, addr string, service Service) (*BaseClient, error) {
+func NewBaseClient(ctx context.Context, addr string, service Service, createDrpcClient func(conn *drpcconn.Conn) interface{}) (*BaseClient, error) {
 	// Defien the new baseclient return 
 	bc := &BaseClient{}
 
@@ -26,16 +26,7 @@ func NewBaseClient(ctx context.Context, addr string, service Service) (*BaseClie
 	bc.conn = conn
 
 	// Define the client
-	switch service {
-		case QueryService:
-			bc.client = nil
-		case IndexService:
-			bc.client = nil
-		case StoreService:
-			bc.client = NewDRPCStoreClient(*conn)
-		default:
-			return nil, IncorrectServiceError(service, NoneService)
-	}
+	bc.client = createDrpcClient(conn)
 
 	// Ping the server
 	err = ValidateClient(bc, service, ctx)

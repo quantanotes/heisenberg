@@ -13,7 +13,7 @@ type StoreClient struct {
 
 func NewStoreClient(ctx context.Context, addr string) (*StoreClient, error) {
 	sc := &StoreClient{}
-	sc.base, err = pb.NewBaseClient(ctx, addr, internal.StoreService)
+	sc.base, err = pb.NewBaseClient(ctx, addr, internal.StoreService, NewDRPCStoreClient)
 	return sc, nil
 }
 
