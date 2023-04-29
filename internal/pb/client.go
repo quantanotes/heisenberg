@@ -9,8 +9,8 @@ import (
 
 // BaseClient is a basic template for all types of clients in the database
 type BaseClient struct {
-	conn   			*drpcconn.Conn
-	StoreClient 	DRPCStoreClient
+	conn   		*drpcconn.Conn
+	client 		DRPCClient
 }
 
 // NewBaseClient creates a new BaseClient
@@ -24,7 +24,18 @@ func NewBaseClient(ctx context.Context, addr string, service Service) (*BaseClie
 		return nil, err
 	}
 	bc.conn = conn
-	bc.client = NewDRPCStoreClient(*conn)
+
+	// Define the client
+	switch service {
+		case QueryService:
+			bc.client = nil
+		case IndexService:
+			bc.client = nil
+		case StoreService:
+			bc.client = NewDRPCStoreClient(*conn)
+		default:
+			return nil, IncorrectServiceError(service, NoneService)
+	}
 
 	// Ping the server
 	err = ValidateClient(bc, service, ctx)
