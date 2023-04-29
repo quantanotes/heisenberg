@@ -9,8 +9,8 @@ import (
 
 // BaseClient is a basic template for all types of clients in the database
 type BaseClient struct {
-	conn   	*drpcconn.Conn
-	Client 	DRPCStoreClient
+	conn   			*drpcconn.Conn
+	StoreClient 	DRPCStoreClient
 }
 
 // NewBaseClient creates a new BaseClient
