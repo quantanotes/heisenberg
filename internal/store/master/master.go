@@ -8,17 +8,26 @@ import (
 	"heisenberg/log"
 )
 
-type Master struct {
+type StoreMasterServer struct {
 	shard shard
 }
 
-func NewMaster(ctx context.Context, addr string) (*Master, error) {
-	m := &Master{}
+func RunStoreMasterServer(ctx context.Context, addr string) {
+	m := &StoreMasterServer{}
 	go internal.Serve(ctx, addr, m)
-	return m, nil
 }
 
-func (m *Master) ConnectNode(ctx context.Context, req string) error {
+func (s *StoreMasterServer) Ping(ctx context.Context, req *pb.Empty) (*pb.Pong, error) {
+	pong := &pb.Pong{
+		Id:      "0",
+		Master:  true,
+		Service: uint32(internal.StoreService),
+		Shard:   nil,
+	}
+	return pong, nil
+}
+
+func (s *StoreMasterServer) ConnectNode(ctx context.Context, req string) error {
 	c, err := store.NewStoreClient(ctx, req)
 	if err != nil {
 		return log.LogErrReturn("ConnectNode", err)
@@ -33,7 +42,7 @@ func (m *Master) ConnectNode(ctx context.Context, req string) error {
 	case uint32(internal.StoreService):
 		id := pong.Id
 		shard := *pong.Shard
-		m.shard.addReplica(c, id, shard)
+		s.shard.addReplica(c, id, shard)
 	default:
 		return log.LogErrReturn("ConnectNode", err)
 	}
@@ -41,20 +50,10 @@ func (m *Master) ConnectNode(ctx context.Context, req string) error {
 	return nil
 }
 
-func (m *Master) Ping(ctx context.Context, req *pb.Empty) (*pb.Pong, error) {
-	pong := &pb.Pong{
-		Id:      "0",
-		Master:  true,
-		Service: uint32(internal.StoreService),
-		Shard:   nil,
-	}
-	return pong, nil
-}
-
-func (m *Master) Get(ctx context.Context, req *pb.Key) (*pb.Pair, error) {
+func (s *StoreMasterServer) Get(ctx context.Context, req *pb.Key) (*pb.Pair, error) {
 	key := req.Key
 	collection := req.Collection
-	shard, err := m.shard.getShard(key)
+	shard, err := s.shard.getShard(key)
 	if err != nil {
 		return log.LogErrNilReturn[pb.Pair]("Get", err)
 	}
@@ -67,10 +66,10 @@ func (m *Master) Get(ctx context.Context, req *pb.Key) (*pb.Pair, error) {
 	return res, nil
 }
 
-func (m *Master) Put(ctx context.Context, req *pb.Pair) (*pb.Empty, error) {
+func (s *StoreMasterServer) Put(ctx context.Context, req *pb.Pair) (*pb.Empty, error) {
 	return nil, nil
 }
 
-func (m *Master) Delete(ctx context.Context, req *pb.Key) (*pb.Empty, error) {
+func (s *StoreMasterServer) Delete(ctx context.Context, req *pb.Key) (*pb.Empty, error) {
 	return nil, nil
 }
