@@ -8,11 +8,9 @@ import (
 
 // Interface for handling replication
 type replica struct {
-	shardId string
 	clients map[string]*store.StoreClient
 }
 
-// Assumes non erroneous usage
 func (r *replica) addReplica(c *store.StoreClient, id string) {
 	r.clients[id] = c
 }

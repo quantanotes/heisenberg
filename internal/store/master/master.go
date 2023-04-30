@@ -2,7 +2,6 @@ package master
 
 import (
 	"context"
-	"fmt"
 	"heisenberg/internal"
 	"heisenberg/internal/pb"
 	"heisenberg/internal/store"
@@ -41,9 +40,7 @@ func (m *Master) Get(ctx context.Context, req *pb.Key) (*pb.Value, error) {
 	collection := req.Collection
 	shard, err := m.shard.getShard(key)
 	if err != nil {
-		err := fmt.Errorf("@Get, %v", err)
-		log.Error(err.Error(), nil)
-		return nil, err
+		return log.LogErrNilReturn[pb.Value]("Get", err)
 	}
 	// Select random replica of given shard
 	client, err := shard.choose()

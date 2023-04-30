@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"heisenberg/internal/pb"
+	"heisenberg/log"
 )
 
 type StoreServer struct {
@@ -24,7 +25,7 @@ func (s *StoreServer) Get(ctx context.Context, req *pb.Key) (*pb.Value, error) {
 	collection := req.Collection
 	res, err := s.store.get(key, collection)
 	if err != nil {
-		return nil, err
+		log.LogErrNilReturn[pb.Value]("Get", err)
 	}
 	return res, nil
 }

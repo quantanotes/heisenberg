@@ -5,7 +5,7 @@ import (
 	"heisenberg/internal/store"
 )
 
-// Interface to handle sharding via consistent hashing
+// Interface to handle shards via consistent hashing
 type shard struct {
 	replicas map[string]*replica // Shard clients with replication management
 	ring     ring                // Circular data structure for consistent hashing
