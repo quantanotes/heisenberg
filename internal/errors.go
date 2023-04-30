@@ -7,7 +7,7 @@ import (
 type errorCode uint
 
 const (
-	NullError errorCode = iota
+	NullErrorCode errorCode = iota
 
 	ConnectionErrorCode
 	InvalidServiceErrorCode
@@ -16,6 +16,9 @@ const (
 	InvalidCollectionErrorCode
 	InvalidKeyErrorCode
 	CorruptValueErrorCode
+
+	NoShardsErrorCode
+	InvalidShardErrorCode
 )
 
 func ConnectionError(addr string, args ...interface{}) error {
@@ -69,6 +72,23 @@ func CorruptValueError(key []byte, args ...interface{}) error {
 		"%d: corrupt value at key %s, trace: %v",
 		CorruptValueErrorCode,
 		string(key),
+		args,
+	)
+}
+
+func NoShardsError(args ...interface{}) error {
+	return fmt.Errorf(
+		"%d: no shards, trace: %v",
+		NoShardsErrorCode,
+		args,
+	)
+}
+
+func InvalidShardError(id string, args ...interface{}) error {
+	return fmt.Errorf(
+		"%d: shard %s does not exist, trace: %v",
+		NoShardsErrorCode,
+		id,
 		args,
 	)
 }

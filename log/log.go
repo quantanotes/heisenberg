@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/sirupsen/logrus"
@@ -67,6 +68,18 @@ func Trace(msg string, args M) {
 
 func Fatal(msg string, args M) {
 	logrus.WithFields(logrus.Fields(args)).Fatal(msg)
+}
+
+func LogErrNilReturn[T interface{}](at string, err error) (*T, error) {
+	e := fmt.Errorf("@%s, %v", at, err)
+	Error(e.Error(), nil)
+	return nil, e
+}
+
+func LogErrReturn(at string, err error) error {
+	e := fmt.Errorf("@%s, %v", at, err)
+	Error(e.Error(), nil)
+	return e
 }
 
 func init() {

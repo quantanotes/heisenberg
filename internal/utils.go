@@ -1,6 +1,8 @@
 package internal
 
-import "hash/fnv"
+import (
+	"hash/fnv"
+)
 
 func Hash(key []byte) uint32 {
 	h := fnv.New32a()

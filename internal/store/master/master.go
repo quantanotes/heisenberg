@@ -16,16 +16,12 @@ type Master struct {
 func (m *Master) ConnectNode(ctx context.Context, req string) error {
 	c, err := store.NewStoreClient(ctx, req)
 	if err != nil {
-		err := fmt.Errorf("@ConnectNode, %v", err)
-		log.Error(err.Error(), nil)
-		return err
+		return log.LogErrReturn("ConnectNode", err)
 	}
 
 	pong, err := c.Ping(ctx)
 	if err != nil {
-		err := fmt.Errorf("@ConnectNode, %v", err)
-		log.Error(err.Error(), nil)
-		return err
+		return log.LogErrReturn("ConnectNode", err)
 	}
 
 	switch pong.Service {
@@ -34,7 +30,7 @@ func (m *Master) ConnectNode(ctx context.Context, req string) error {
 		shard := *pong.Shard
 		m.shard.addReplica(c, id, shard)
 	default:
-		return internal.InvalidServiceError()
+		return log.LogErrReturn("ConnectNode", err)
 	}
 
 	return nil
@@ -45,12 +41,14 @@ func (m *Master) Get(ctx context.Context, req *pb.Key) (*pb.Value, error) {
 	collection := req.Collection
 	shard, err := m.shard.getShard(key)
 	if err != nil {
+		err := fmt.Errorf("@Get, %v", err)
+		log.Error(err.Error(), nil)
 		return nil, err
 	}
 	// Select random replica of given shard
 	client, err := shard.choose()
 	if err != nil {
-		return nil, err
+		return log.LogErrNilReturn[pb.Value]("Get", err)
 	}
 	res := client.Get(key, collection)
 	return res, nil
