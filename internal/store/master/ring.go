@@ -1,6 +1,9 @@
-package store
+package master
 
-import "sort"
+import (
+	"heisenberg/internal"
+	"sort"
+)
 
 // Circular data structure used for consistent hashing
 type ring struct {
@@ -19,7 +22,7 @@ func (r *ring) getNode(key []byte) string {
 		return ""
 	}
 
-	h := hash(key)
+	h := internal.Hash(key)
 	i := sort.Search(len(r.sorted), func(i int) bool {
 		return r.sorted[i] >= h
 	})
@@ -32,12 +35,12 @@ func (r *ring) getNode(key []byte) string {
 }
 
 func (r *ring) addNode(node string) {
-	r.nodes[hash([]byte(node))] = node
+	r.nodes[internal.Hash([]byte(node))] = node
 	r.updatedSorted()
 }
 
 func (r *ring) removeNode(node string) {
-	delete(r.nodes, hash([]byte(node)))
+	delete(r.nodes, internal.Hash([]byte(node)))
 	r.updatedSorted()
 }
 

@@ -1,7 +1,8 @@
-package store
+package master
 
 import (
 	"fmt"
+	"heisenberg/internal/store"
 	"heisenberg/log"
 )
 
@@ -65,7 +66,7 @@ func (s *shard) getReplicas() map[string]*replica {
 }
 
 // Assumes non-erroneous usage
-func (s *shard) addReplica(c *StoreClient, id string, shard string) error {
+func (s *shard) addReplica(c *store.StoreClient, id string, shard string) error {
 	s.replicas[shard].addReplica(c, id)
 	return nil
 }
