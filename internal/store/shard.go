@@ -7,9 +7,9 @@ import (
 
 // Interface to handle sharding via consistent hashing
 type shard struct {
-	shards   []string             // Shard id
-	replicas *map[string]*replica // Shard clients with replication management
-	ring     ring                 // Circular data structure for consistent hashing
+	shards   []string            // Shard id
+	replicas map[string]*replica // Shard clients with replication management
+	ring     ring                // Circular data structure for consistent hashing
 }
 
 func (s *shard) addShard(id string) error {
@@ -43,7 +43,7 @@ func (s *shard) getShard(key []byte) (*replica, error) {
 		log.Error(err, nil)
 		return nil, fmt.Errorf(err)
 	}
-	replica := (*s.replicas)[id]
+	replica := s.replicas[id]
 	return replica, nil
 }
 
@@ -60,8 +60,12 @@ func (s *shard) reshard(old shard) error {
 	return nil
 }
 
-func (s *shard) getReplicas() *map[string]*replica {
+func (s *shard) getReplicas() map[string]*replica {
 	return s.replicas
 }
 
-func 
+// Assumes non-erroneous usage
+func (s *shard) addReplica(c *StoreClient, id string, shard string) error {
+	s.replicas[shard].addReplica(c, id)
+	return nil
+}

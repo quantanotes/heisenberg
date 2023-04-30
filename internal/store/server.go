@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"heisenberg/internal"
 	"heisenberg/internal/pb"
+	"heisenberg/log"
 )
 
 type StoreServer struct {
@@ -13,34 +14,34 @@ type StoreServer struct {
 	master  bool
 	store   store
 	shard   *shard
-	replica *replica
 }
 
 func (s *StoreServer) Close() {
 
 }
 
+// Handshake between other compute nodes
 func (s *StoreServer) ConnectNode(ctx context.Context, req string) error {
 	c, err := NewStoreClient(ctx, req)
 	if err != nil {
-		return fmt.Errorf("ConnectNode error %v", err)
+		err := fmt.Errorf("@ConnectNode, %v", err)
+		log.Error(err.Error(), nil)
+		return err
 	}
 
 	pong, err := c.Ping(ctx)
 	if err != nil {
-		return fmt.Errorf("ConnectNode error %v", err)
+		err := fmt.Errorf("@ConnectNode, %v", err)
+		log.Error(err.Error(), nil)
+		return err
 	}
 
 	switch pong.Service {
 	case uint32(internal.StoreService):
-		shard := pong.Shard
-		replica := pong.Replica
-
-		// If master add as shard, if shard add as replica
+		id := pong.Id
+		shard := *pong.Shard
 		if s.master {
-			s.shard.addReplica()
-		} else {
-
+			s.shard.addReplica(c, id, shard)
 		}
 		return nil
 	default:
