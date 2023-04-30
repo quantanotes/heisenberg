@@ -22,7 +22,7 @@ func NewStoreClient(ctx context.Context, addr string) (*StoreClient, error) {
 	return &StoreClient{addr, c.Conn, c.Client}, err
 }
 
-func (c *StoreClient) Get(key []byte, collection []byte) *pb.Value {
+func (c *StoreClient) Get(key []byte, collection []byte) *pb.Pair {
 	return nil
 }
 
