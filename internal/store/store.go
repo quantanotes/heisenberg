@@ -34,12 +34,10 @@ func (s *store) get(key []byte, collection []byte) (*pb.Value, error) {
 		if b == nil {
 			return internal.InvalidCollectionError(collection)
 		}
-
 		raw = b.Get(key)
 		if raw == nil {
 			return internal.InvalidKeyError(key, collection)
 		}
-
 		return nil
 	}
 
