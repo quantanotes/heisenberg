@@ -2,6 +2,7 @@ package master
 
 import (
 	"context"
+	"fmt"
 	"heisenberg/internal"
 	"heisenberg/internal/pb"
 	"heisenberg/internal/store"
@@ -14,7 +15,8 @@ type StoreMasterServer struct {
 
 func RunStoreMasterServer(ctx context.Context, addr string) {
 	m := &StoreMasterServer{}
-	go internal.Serve(ctx, addr, m)
+	log.Info(fmt.Sprintf("Starting master store server %s", addr), nil)
+	internal.Serve(ctx, addr, m)
 }
 
 func (s *StoreMasterServer) Ping(ctx context.Context, req *pb.Empty) (*pb.Pong, error) {
