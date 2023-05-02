@@ -3,23 +3,21 @@ package internal
 import (
 	"context"
 	"heisenberg/internal/pb"
-	"heisenberg/log"
 	"net"
 
 	"storj.io/drpc/drpcmux"
 	"storj.io/drpc/drpcserver"
 )
 
-func Serve(ctx context.Context, addr string, init pb.DRPCServiceServer) error {
+func NewServer(ctx context.Context, addr string, init pb.DRPCServiceServer) (*net.Listener, *drpcserver.Server, error) {
 	m := drpcmux.New()
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.LogErrReturn("Serve", err)
+		return nil, nil, err
 	}
-	defer lis.Close()
 	err = pb.DRPCRegisterService(m, init)
 	if err != nil {
-		log.LogErrReturn("Serve", err)
+		return nil, nil, err
 	}
-	return drpcserver.New(m).Serve(ctx, lis)
+	return &lis, drpcserver.New(m), nil
 }

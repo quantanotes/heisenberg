@@ -6,20 +6,37 @@ import (
 	"heisenberg/internal"
 	"heisenberg/internal/pb"
 	"heisenberg/log"
+	"net"
+
+	"storj.io/drpc/drpcserver"
 )
 
 type StoreMasterServer struct {
-	shard shard
+	server *drpcserver.Server
+	lis    *net.Listener
+	shard  shard
 }
 
-func RunStoreMasterServer(ctx context.Context, addr string) {
+func NewStoreMasterServer() (*StoreMasterServer, error) {
 	m := &StoreMasterServer{}
-	log.Info(fmt.Sprintf("Starting master store server %s", addr), nil)
-	internal.Serve(ctx, addr, m)
+	return m, nil
 }
 
-func (s *StoreMasterServer) Close() {
+func (m *StoreMasterServer) Run(ctx context.Context, addr string) error {
+	lis, server, err := internal.NewServer(ctx, addr, m)
+	if err != nil {
+		log.LogErrReturn("RunStoreMasterServer", err)
 
+	}
+	m.server = server
+	m.lis = lis
+	log.Info(fmt.Sprintf("Starting master store server %s", addr), nil)
+	return m.server.Serve(ctx, *m.lis)
+}
+
+func (m *StoreMasterServer) Close() {
+	log.Info(fmt.Sprintf("Closing master store server %s", (*m.lis).Addr().String()), nil)
+	(*m.lis).Close()
 }
 
 func (s *StoreMasterServer) Ping(ctx context.Context, req *pb.Empty) (*pb.Pong, error) {

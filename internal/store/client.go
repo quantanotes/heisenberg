@@ -20,6 +20,11 @@ func NewStoreClient(ctx context.Context, addr string) (*StoreClient, error) {
 		return nil, err
 	}
 	return &StoreClient{addr, c.Conn, c.Client}, err
+
+}
+
+func (c *StoreClient) Close() {
+	c.conn.Close()
 }
 
 func (c *StoreClient) Get(key []byte, collection []byte) *pb.Pair {

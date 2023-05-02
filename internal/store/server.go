@@ -2,19 +2,43 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"heisenberg/internal"
 	"heisenberg/internal/pb"
 	"heisenberg/log"
+	"net"
+
+	"storj.io/drpc/drpcserver"
 )
 
 type StoreServer struct {
-	id    string
-	store store
+	server *drpcserver.Server
+	lis    *net.Listener
+	id     string
+	store  *store
 }
 
-func RunStoreServer(ctx context.Context, addr string) {
-	m := &StoreServer{}
-	go internal.Serve(ctx, addr, m)
+func NewStoreServer(id string) (*StoreServer, error) {
+	s := &StoreServer{}
+	s.id = id
+	return s, nil
+}
+
+func (s *StoreServer) Run(ctx context.Context, addr string) error {
+	lis, server, err := internal.NewServer(ctx, addr, s)
+	if err != nil {
+		log.LogErrReturn("Run", err)
+
+	}
+	s.server = server
+	s.lis = lis
+	log.Info(fmt.Sprintf("Starting store server %s", addr), nil)
+	return s.server.Serve(ctx, *s.lis)
+}
+
+func (s *StoreServer) Close() {
+	log.Info(fmt.Sprintf("Closing store server %s", (*s.lis).Addr().String()), nil)
+	(*s.lis).Close()
 }
 
 func (s *StoreServer) Ping(ctx context.Context, req *pb.Empty) (*pb.Pong, error) {

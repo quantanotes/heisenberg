@@ -4,13 +4,13 @@ import (
 	"context"
 	"flag"
 	"heisenberg/internal/store"
-	"heisenberg/internal/store/master"
 	"heisenberg/log"
 )
 
 func main() {
 	masterPtr := flag.Bool("m", false, "set if master node")
 	hostPtr := flag.String("h", "", "host name for node")
+	//idPtr := flag.String("id", "", "id of node")
 	ctx := context.Background()
 
 	flag.Parse()
@@ -22,8 +22,20 @@ func main() {
 	}
 
 	if *masterPtr {
-		master.RunStoreMasterServer(ctx, *hostPtr)
+		m, err := store.NewStoreMasterServer()
+		if err != nil {
+			log.Fatal(err.Error(), nil)
+			panic(nil)
+		}
+		defer m.Close()
+		m.Run(ctx, *hostPtr)
 	} else {
-		store.RunStoreServer(ctx, *hostPtr)
+		s, err := store.NewStoreServer("a")
+		if err != nil {
+			log.Fatal(err.Error(), nil)
+			panic(nil)
+		}
+		defer s.Close()
+		s.Run(ctx, *hostPtr)
 	}
 }

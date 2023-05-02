@@ -3,30 +3,43 @@ package store
 import (
 	"context"
 	"fmt"
-	"sync"
 	"testing"
 )
 
-var wg sync.WaitGroup // wait for go routines to finish before main thread
-
 func TestMasterPong(t *testing.T) {
-	defer wg.Done()
 	ctx := context.Background()
-	wg.Add(1)
-	// create master server
-	go RunStoreMasterServer(ctx, "localhost:691")
+
+	m, _ := NewStoreMasterServer()
+	go m.Run(ctx, "localhost:691")
+	defer m.Close()
 
 	client, err := NewStoreClient(ctx, "localhost:691")
 	if err != nil {
 		panic(err)
 	}
+	defer client.Close()
 
 	pong, err := client.Ping(ctx)
 	if err != nil {
 		panic(err)
 	}
-
 	fmt.Println(pong)
+}
 
-	wg.Wait()
+func TestMasterConnect(t *testing.T) {
+	ctx := context.Background()
+
+	m, _ := NewStoreMasterServer()
+	go m.Run(ctx, "localhost:691")
+	defer m.Close()
+
+	mc, _ := NewStoreClient(ctx, "localhost:691")
+	defer mc.Close()
+
+	s, _ := NewStoreServer("a")
+	go s.Run(ctx, "localhost:692")
+	defer s.Close()
+
+	sc, _ := NewStoreClient(ctx, "localhost:692")
+	defer sc.Close()
 }
