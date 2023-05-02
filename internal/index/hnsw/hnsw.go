@@ -1,0 +1,3 @@
+package hnsw
+
+import "C"

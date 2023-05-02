@@ -1,11 +1,10 @@
-package master
+package store
 
 import (
 	"context"
 	"fmt"
 	"heisenberg/internal"
 	"heisenberg/internal/pb"
-	"heisenberg/internal/store"
 	"heisenberg/log"
 )
 
@@ -19,6 +18,10 @@ func RunStoreMasterServer(ctx context.Context, addr string) {
 	internal.Serve(ctx, addr, m)
 }
 
+func (s *StoreMasterServer) Close() {
+
+}
+
 func (s *StoreMasterServer) Ping(ctx context.Context, req *pb.Empty) (*pb.Pong, error) {
 	pong := &pb.Pong{
 		Id:      "0",
@@ -30,7 +33,7 @@ func (s *StoreMasterServer) Ping(ctx context.Context, req *pb.Empty) (*pb.Pong, 
 }
 
 func (s *StoreMasterServer) ConnectNode(ctx context.Context, req string) error {
-	c, err := store.NewStoreClient(ctx, req)
+	c, err := NewStoreClient(ctx, req)
 	if err != nil {
 		return log.LogErrReturn("ConnectNode", err)
 	}

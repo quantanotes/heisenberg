@@ -27,7 +27,6 @@ func (s *StoreServer) Ping(ctx context.Context, req *pb.Empty) (*pb.Pong, error)
 	return pong, nil
 }
 
-// Handshake between other compute nodes
 func (s *StoreServer) ConnectNode(ctx context.Context, req string) error {
 	return nil
 }

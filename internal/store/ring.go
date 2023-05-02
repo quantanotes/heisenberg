@@ -1,4 +1,4 @@
-package master
+package store
 
 import (
 	"heisenberg/internal"

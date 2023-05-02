@@ -9,13 +9,13 @@ import (
 	"storj.io/drpc/drpcconn"
 )
 
+// Generic interface for clients
 type Client struct {
 	addr   string
 	Conn   *drpcconn.Conn
 	Client pb.DRPCServiceClient
 }
 
-// Base constructor for clients
 func NewClient(ctx context.Context, addr string, service Service) (*Client, error) {
 	conn, err := connect(addr)
 	if err != nil {
@@ -49,6 +49,7 @@ func connect(addr string) (*drpcconn.Conn, error) {
 	return conn, nil
 }
 
+// Ensure client is connecting to correct service
 func (c *Client) validateClient(ctx context.Context, expected Service) error {
 	pong, err := c.Client.Ping(ctx, nil)
 	if err != nil {
