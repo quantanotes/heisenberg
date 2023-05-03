@@ -10,19 +10,24 @@ import (
 func main() {
 	masterPtr := flag.Bool("m", false, "set if master node")
 	hostPtr := flag.String("h", "", "host name for node")
+	dirPtr := flag.String("dir", "", "directory of storage data files")
 	//idPtr := flag.String("id", "", "id of node")
 	ctx := context.Background()
 
 	flag.Parse()
 
-	log.Info("@Main Heisenberg Store", nil)
+	log.Info("@store/Main", nil)
 
 	if *hostPtr == "" {
-		log.Fatal("Host not specified", nil)
+		log.Fatal("host not specified", nil)
+	}
+
+	if *dirPtr == "" {
+		log.Fatal("directory not specified", nil)
 	}
 
 	if *masterPtr {
-		m, err := store.NewStoreMasterServer()
+		m, err := store.NewStoreMasterServer(*dirPtr)
 		if err != nil {
 			log.Fatal(err.Error(), nil)
 			panic(nil)

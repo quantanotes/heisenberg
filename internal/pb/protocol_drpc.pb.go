@@ -42,7 +42,7 @@ type DRPCServiceClient interface {
 	Connect(ctx context.Context, in *Connection) (*Empty, error)
 	AddShard(ctx context.Context, in *Shard) (*Empty, error)
 	Get(ctx context.Context, in *Key) (*Pair, error)
-	Put(ctx context.Context, in *Pair) (*Empty, error)
+	Put(ctx context.Context, in *Item) (*Empty, error)
 	Delete(ctx context.Context, in *Key) (*Empty, error)
 }
 
@@ -92,7 +92,7 @@ func (c *drpcServiceClient) Get(ctx context.Context, in *Key) (*Pair, error) {
 	return out, nil
 }
 
-func (c *drpcServiceClient) Put(ctx context.Context, in *Pair) (*Empty, error) {
+func (c *drpcServiceClient) Put(ctx context.Context, in *Item) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/pb.Service/Put", drpcEncoding_File_protocol_proto{}, in, out)
 	if err != nil {
@@ -115,7 +115,7 @@ type DRPCServiceServer interface {
 	Connect(context.Context, *Connection) (*Empty, error)
 	AddShard(context.Context, *Shard) (*Empty, error)
 	Get(context.Context, *Key) (*Pair, error)
-	Put(context.Context, *Pair) (*Empty, error)
+	Put(context.Context, *Item) (*Empty, error)
 	Delete(context.Context, *Key) (*Empty, error)
 }
 
@@ -137,7 +137,7 @@ func (s *DRPCServiceUnimplementedServer) Get(context.Context, *Key) (*Pair, erro
 	return nil, drpcerr.WithCode(errors.New("Unimplemented"), drpcerr.Unimplemented)
 }
 
-func (s *DRPCServiceUnimplementedServer) Put(context.Context, *Pair) (*Empty, error) {
+func (s *DRPCServiceUnimplementedServer) Put(context.Context, *Item) (*Empty, error) {
 	return nil, drpcerr.WithCode(errors.New("Unimplemented"), drpcerr.Unimplemented)
 }
 
@@ -193,7 +193,7 @@ func (DRPCServiceDescription) Method(n int) (string, drpc.Encoding, drpc.Receive
 				return srv.(DRPCServiceServer).
 					Put(
 						ctx,
-						in1.(*Pair),
+						in1.(*Item),
 					)
 			}, DRPCServiceServer.Put, true
 	case 5:

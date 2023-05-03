@@ -70,7 +70,7 @@ func (s *StoreServer) Get(ctx context.Context, msg *pb.Key) (*pb.Pair, error) {
 	return nil, nil // TODO
 }
 
-func (s *StoreServer) Put(ctx context.Context, msg *pb.Pair) (*pb.Empty, error) {
+func (s *StoreServer) Put(ctx context.Context, msg *pb.Item) (*pb.Empty, error) {
 	return nil, nil
 }
 

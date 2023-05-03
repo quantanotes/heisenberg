@@ -3,13 +3,19 @@ package store
 import (
 	"context"
 	"fmt"
+	"heisenberg/internal"
+	"path/filepath"
 	"testing"
 )
 
 func TestMasterPong(t *testing.T) {
 	ctx := context.Background()
 
-	m, _ := NewStoreMasterServer()
+	dir := filepath.Join(internal.Wd, "tests/master.bin")
+	m, err := NewStoreMasterServer(dir)
+	if err != nil {
+		panic(err)
+	}
 	go m.Run(ctx, "localhost:691")
 	defer m.Close()
 
@@ -23,13 +29,16 @@ func TestMasterPong(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Println(pong)
 }
 
 func TestMasterConnect(t *testing.T) {
 	ctx := context.Background()
 
-	m, _ := NewStoreMasterServer()
+	dir := filepath.Join(internal.Wd, "tests/master.bin")
+
+	m, _ := LoadStoreMasterServer(dir)
 	go m.Run(ctx, "localhost:691")
 	defer m.Close()
 
@@ -46,6 +55,5 @@ func TestMasterConnect(t *testing.T) {
 	defer sc.Close()
 
 	mc.Connect(ctx, "localhost:692")
-
 	defer sc.Close()
 }

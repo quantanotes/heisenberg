@@ -9,7 +9,7 @@ import (
 )
 
 type StoreClient struct {
-	addr   string
+	Addr   string
 	conn   *drpcconn.Conn
 	client pb.DRPCServiceClient
 }
@@ -36,6 +36,11 @@ func (c *StoreClient) AddShard(ctx context.Context, id string) {
 
 func (c *StoreClient) Get(key []byte, collection []byte) *pb.Pair {
 	return nil
+}
+
+func (c *StoreClient) Put(ctx context.Context, key []byte, value []byte, collection []byte) error {
+	_, err := c.client.Put(ctx, &pb.Item{Key: key, Value: value, Collection: collection})
+	return err
 }
 
 func (c *StoreClient) Ping(ctx context.Context) (*pb.Pong, error) {

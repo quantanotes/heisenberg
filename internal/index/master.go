@@ -1,4 +1,4 @@
-package master
+package index
 
 type MasterIndexServer struct {
 }

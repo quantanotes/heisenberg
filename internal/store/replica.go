@@ -8,6 +8,7 @@ import (
 
 // Interface for handling replication
 type replica struct {
+	Ids     []string
 	clients map[string]*StoreClient
 }
 
@@ -16,6 +17,9 @@ func (r *replica) addReplica(c *StoreClient, id string) error {
 		return internal.NilClientError()
 	}
 	r.clients[id] = c
+	if !internal.Contains(r.Ids, id) {
+		r.Ids = append(r.Ids, id)
+	}
 	return nil
 }
 

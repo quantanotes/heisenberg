@@ -2,10 +2,8 @@ package store
 
 import (
 	"heisenberg/internal"
-	"heisenberg/internal/pb"
 
 	"go.etcd.io/bbolt"
-	"google.golang.org/protobuf/proto"
 )
 
 // Base key-value storage
@@ -15,44 +13,52 @@ type store struct {
 	txPool map[string]*bbolt.Tx // Pending transactions
 }
 
-func newKv() (*store, error) {
-	return nil, nil
+func newStore(path string) (*store, error) {
+	db, err := bbolt.Open(path, 0666, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &store{path, db, nil}, nil
 }
 
-func loadKv() (*store, error) {
-	return nil, nil
+func loadStore(path string) (*store, error) {
+	db, err := bbolt.Open(path, 0666, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &store{path, db, nil}, nil
 }
 
-func (s *store) closeKv() {
+func (s *store) close() {
 	s.db.Close()
 }
 
-func (s *store) get(key []byte, collection []byte) (*pb.Value, error) {
-	var raw []byte
+func (s *store) createCollection(collection []byte) error {
+	tx := func(tx *bbolt.Tx) error {
+		_, err := tx.CreateBucket(collection)
+		return err
+	}
+	return s.db.Update(tx)
+}
+
+func (s *store) get(key []byte, collection []byte) ([]byte, error) {
+	var val []byte
 	tx := func(tx *bbolt.Tx) error {
 		b := tx.Bucket(collection)
 		if b == nil {
 			return internal.InvalidCollectionError(collection)
 		}
-		raw = b.Get(key)
-		if raw == nil {
+		val = b.Get(key)
+		if val == nil {
 			return internal.InvalidKeyError(key, collection)
 		}
 		return nil
 	}
-
 	err := s.db.View(tx)
 	if err != nil {
 		return nil, err
 	}
-
-	value := &pb.Value{}
-	err = proto.Unmarshal(raw, value)
-	if err != nil {
-		return nil, internal.CorruptValueError(key)
-	}
-
-	return value, nil
+	return val, nil
 }
 
 func (s *store) put(key []byte, value []byte, collection []byte) error {

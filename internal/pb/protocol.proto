@@ -43,9 +43,9 @@ message Pair {
 }
 
 message Item {
-    bytes collection = 1;
     bytes key = 2;
-    Value value = 3;
+    bytes value = 3;
+    bytes collection = 1;
 }
 
 service Service {
@@ -53,6 +53,6 @@ service Service {
     rpc Connect(Connection) returns (Empty) {}
     rpc AddShard(Shard) returns (Empty) {}
     rpc Get(Key) returns (Pair) {}
-    rpc Put(Pair) returns (Empty) {}
+    rpc Put(Item) returns (Empty) {}
     rpc Delete(Key) returns (Empty) {}
 }
