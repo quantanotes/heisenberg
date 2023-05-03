@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"heisenberg/internal"
 	"heisenberg/internal/pb"
 	"heisenberg/log"
@@ -17,8 +18,13 @@ type StoreServer struct {
 	store  *store
 }
 
-func NewStoreServer(id string) (*StoreServer, error) {
+func NewStoreServer(path string, id string) (*StoreServer, error) {
 	s := &StoreServer{}
+	store, err := loadStore(path)
+	if err != nil {
+		log.LogErrNilReturn[*StoreServer]("NewStoreServer", err, s.identity())
+	}
+	s.store = store
 	s.id = id
 	return s, nil
 }
@@ -40,9 +46,8 @@ func (s *StoreServer) Close() {
 	(*s.lis).Close()
 }
 
-func (s *StoreServer) Ping(ctx context.Context, msg *pb.Empty) (*pb.Pong, error) {
+func (s *StoreServer) Ping(ctx context.Context, in *pb.Empty) (*pb.Pong, error) {
 	shard := "a"
-
 	pong := &pb.Pong{
 		Id:      s.id,
 		Master:  false,
@@ -52,29 +57,48 @@ func (s *StoreServer) Ping(ctx context.Context, msg *pb.Empty) (*pb.Pong, error)
 	return pong, nil
 }
 
-func (s *StoreServer) Connect(ctx context.Context, msg *pb.Connection) (*pb.Empty, error) {
+func (s *StoreServer) Connect(ctx context.Context, in *pb.Connection) (*pb.Empty, error) {
 	return nil, nil
 }
 
-func (s *StoreServer) AddShard(ctx context.Context, msg *pb.Shard) (*pb.Empty, error) {
+func (s *StoreServer) AddShard(ctx context.Context, in *pb.Shard) (*pb.Empty, error) {
 	return nil, nil
 }
 
-func (s *StoreServer) Get(ctx context.Context, msg *pb.Key) (*pb.Pair, error) {
-	key := msg.Key
-	collection := msg.Collection
-	_, err := s.store.get(key, collection)
+func (s *StoreServer) CreateCollection(ctx context.Context, in *pb.Collection) (*pb.Empty, error) {
+	collection := in.Collection
+	log.Info(fmt.Sprintf("creating collection with name %s", string(collection)), s.identity())
+	err := s.store.createCollection(collection)
 	if err != nil {
-		log.LogErrNilReturn[pb.Pair]("Get", err, s.identity())
+		return log.LogErrNilReturn[pb.Empty]("CreateCollection", err, s.identity())
 	}
-	return nil, nil // TODO
-}
-
-func (s *StoreServer) Put(ctx context.Context, msg *pb.Item) (*pb.Empty, error) {
 	return nil, nil
 }
 
-func (s *StoreServer) Delete(ctx context.Context, msg *pb.Key) (*pb.Empty, error) {
+func (s *StoreServer) Get(ctx context.Context, in *pb.Key) (*pb.Pair, error) {
+	key := in.Key
+	collection := in.Collection
+	log.Info(fmt.Sprintf("getting value at key %s at collection %s", string(key), string(collection)), s.identity())
+	value, err := s.store.get(key, collection)
+	if err != nil {
+		return log.LogErrNilReturn[pb.Pair]("Get", err, s.identity())
+	}
+	return &pb.Pair{Key: key, Value: value}, nil
+}
+
+func (s *StoreServer) Put(ctx context.Context, in *pb.Item) (*pb.Empty, error) {
+	key := in.Key
+	value := in.Value
+	collection := in.Collection
+	log.Info(fmt.Sprintf("putting %s at key %s at collection %s", string(value), string(key), string(collection)), s.identity())
+	err := s.store.put(key, value, collection)
+	if err != nil {
+		return log.LogErrNilReturn[pb.Empty]("Put", err, s.identity())
+	}
+	return nil, nil
+}
+
+func (s *StoreServer) Delete(ctx context.Context, in *pb.Key) (*pb.Empty, error) {
 	return nil, nil
 }
 

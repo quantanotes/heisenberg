@@ -11,7 +11,7 @@ func main() {
 	masterPtr := flag.Bool("m", false, "set if master node")
 	hostPtr := flag.String("h", "", "host name for node")
 	dirPtr := flag.String("dir", "", "directory of storage data files")
-	//idPtr := flag.String("id", "", "id of node")
+	idPtr := flag.String("id", "", "id of node")
 	ctx := context.Background()
 
 	flag.Parse()
@@ -35,7 +35,7 @@ func main() {
 		defer m.Close()
 		m.Run(ctx, *hostPtr)
 	} else {
-		s, err := store.NewStoreServer("a")
+		s, err := store.NewStoreServer(*dirPtr, *idPtr)
 		if err != nil {
 			log.Fatal(err.Error(), nil)
 			panic(nil)

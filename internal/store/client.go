@@ -34,8 +34,14 @@ func (c *StoreClient) AddShard(ctx context.Context, id string) {
 	c.client.AddShard(ctx, &pb.Shard{Shard: id})
 }
 
-func (c *StoreClient) Get(key []byte, collection []byte) *pb.Pair {
-	return nil
+func (c *StoreClient) CreateCollection(ctx context.Context, colleciton []byte) error {
+	_, err := c.client.CreateCollection(ctx, &pb.Collection{Collection: colleciton})
+	return err
+}
+
+func (c *StoreClient) Get(ctx context.Context, key []byte, collection []byte) (*pb.Pair, error) {
+	pair, err := c.client.Get(ctx, &pb.Key{Key: key, Collection: collection})
+	return pair, err
 }
 
 func (c *StoreClient) Put(ctx context.Context, key []byte, value []byte, collection []byte) error {

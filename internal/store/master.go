@@ -149,9 +149,25 @@ func (m *StoreMasterServer) Connect(ctx context.Context, in *pb.Connection) (*pb
 	return nil, nil
 }
 
+func (m *StoreMasterServer) CreateCollection(ctx context.Context, in *pb.Collection) (*pb.Empty, error) {
+	collection := in.Collection
+	log.Info(fmt.Sprintf("creating collection with name %s", string(collection)), m.identity())
+	for _, shard := range *m.shard.getReplicas() {
+		for _, replica := range shard.clients {
+			err := replica.CreateCollection(ctx, collection)
+			if err != nil {
+				_ = 0
+				// TODO : ROLL BACK TRANSACTIONS
+			}
+		}
+	}
+	return nil, nil
+}
+
 func (m *StoreMasterServer) Get(ctx context.Context, in *pb.Key) (*pb.Pair, error) {
 	key := in.Key
 	collection := in.Collection
+	log.Info(fmt.Sprintf("getting value at key %s at collection %s", string(key), string(collection)), m.identity())
 	shard, err := m.shard.getShard(key)
 	if err != nil {
 		return log.LogErrNilReturn[pb.Pair]("Get", err, m.identity())
@@ -161,7 +177,10 @@ func (m *StoreMasterServer) Get(ctx context.Context, in *pb.Key) (*pb.Pair, erro
 	if err != nil {
 		return log.LogErrNilReturn[pb.Pair]("Get", err, m.identity())
 	}
-	res := client.Get(key, collection)
+	res, err := client.Get(ctx, key, collection)
+	if err != nil {
+		return log.LogErrNilReturn[pb.Pair]("Get", err, m.identity())
+	}
 	return res, nil
 }
 
@@ -169,6 +188,7 @@ func (m *StoreMasterServer) Put(ctx context.Context, in *pb.Item) (*pb.Empty, er
 	key := in.Key
 	value := in.Value
 	collection := in.Collection
+	log.Info(fmt.Sprintf("putting %s at key %s at collection %s", string(value), string(key), string(collection)), m.identity())
 	shard, err := m.shard.getShard(key)
 	if err != nil {
 		log.LogErrNilReturn[pb.Empty]("Put", err, m.identity())

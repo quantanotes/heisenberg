@@ -41,6 +41,7 @@ type DRPCServiceClient interface {
 	Ping(ctx context.Context, in *Empty) (*Pong, error)
 	Connect(ctx context.Context, in *Connection) (*Empty, error)
 	AddShard(ctx context.Context, in *Shard) (*Empty, error)
+	CreateCollection(ctx context.Context, in *Collection) (*Empty, error)
 	Get(ctx context.Context, in *Key) (*Pair, error)
 	Put(ctx context.Context, in *Item) (*Empty, error)
 	Delete(ctx context.Context, in *Key) (*Empty, error)
@@ -83,6 +84,15 @@ func (c *drpcServiceClient) AddShard(ctx context.Context, in *Shard) (*Empty, er
 	return out, nil
 }
 
+func (c *drpcServiceClient) CreateCollection(ctx context.Context, in *Collection) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/pb.Service/CreateCollection", drpcEncoding_File_protocol_proto{}, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *drpcServiceClient) Get(ctx context.Context, in *Key) (*Pair, error) {
 	out := new(Pair)
 	err := c.cc.Invoke(ctx, "/pb.Service/Get", drpcEncoding_File_protocol_proto{}, in, out)
@@ -114,6 +124,7 @@ type DRPCServiceServer interface {
 	Ping(context.Context, *Empty) (*Pong, error)
 	Connect(context.Context, *Connection) (*Empty, error)
 	AddShard(context.Context, *Shard) (*Empty, error)
+	CreateCollection(context.Context, *Collection) (*Empty, error)
 	Get(context.Context, *Key) (*Pair, error)
 	Put(context.Context, *Item) (*Empty, error)
 	Delete(context.Context, *Key) (*Empty, error)
@@ -133,6 +144,10 @@ func (s *DRPCServiceUnimplementedServer) AddShard(context.Context, *Shard) (*Emp
 	return nil, drpcerr.WithCode(errors.New("Unimplemented"), drpcerr.Unimplemented)
 }
 
+func (s *DRPCServiceUnimplementedServer) CreateCollection(context.Context, *Collection) (*Empty, error) {
+	return nil, drpcerr.WithCode(errors.New("Unimplemented"), drpcerr.Unimplemented)
+}
+
 func (s *DRPCServiceUnimplementedServer) Get(context.Context, *Key) (*Pair, error) {
 	return nil, drpcerr.WithCode(errors.New("Unimplemented"), drpcerr.Unimplemented)
 }
@@ -147,7 +162,7 @@ func (s *DRPCServiceUnimplementedServer) Delete(context.Context, *Key) (*Empty, 
 
 type DRPCServiceDescription struct{}
 
-func (DRPCServiceDescription) NumMethods() int { return 6 }
+func (DRPCServiceDescription) NumMethods() int { return 7 }
 
 func (DRPCServiceDescription) Method(n int) (string, drpc.Encoding, drpc.Receiver, interface{}, bool) {
 	switch n {
@@ -179,6 +194,15 @@ func (DRPCServiceDescription) Method(n int) (string, drpc.Encoding, drpc.Receive
 					)
 			}, DRPCServiceServer.AddShard, true
 	case 3:
+		return "/pb.Service/CreateCollection", drpcEncoding_File_protocol_proto{},
+			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
+				return srv.(DRPCServiceServer).
+					CreateCollection(
+						ctx,
+						in1.(*Collection),
+					)
+			}, DRPCServiceServer.CreateCollection, true
+	case 4:
 		return "/pb.Service/Get", drpcEncoding_File_protocol_proto{},
 			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
 				return srv.(DRPCServiceServer).
@@ -187,7 +211,7 @@ func (DRPCServiceDescription) Method(n int) (string, drpc.Encoding, drpc.Receive
 						in1.(*Key),
 					)
 			}, DRPCServiceServer.Get, true
-	case 4:
+	case 5:
 		return "/pb.Service/Put", drpcEncoding_File_protocol_proto{},
 			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
 				return srv.(DRPCServiceServer).
@@ -196,7 +220,7 @@ func (DRPCServiceDescription) Method(n int) (string, drpc.Encoding, drpc.Receive
 						in1.(*Item),
 					)
 			}, DRPCServiceServer.Put, true
-	case 5:
+	case 6:
 		return "/pb.Service/Delete", drpcEncoding_File_protocol_proto{},
 			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
 				return srv.(DRPCServiceServer).
@@ -256,6 +280,22 @@ type drpcService_AddShardStream struct {
 }
 
 func (x *drpcService_AddShardStream) SendAndClose(m *Empty) error {
+	if err := x.MsgSend(m, drpcEncoding_File_protocol_proto{}); err != nil {
+		return err
+	}
+	return x.CloseSend()
+}
+
+type DRPCService_CreateCollectionStream interface {
+	drpc.Stream
+	SendAndClose(*Empty) error
+}
+
+type drpcService_CreateCollectionStream struct {
+	drpc.Stream
+}
+
+func (x *drpcService_CreateCollectionStream) SendAndClose(m *Empty) error {
 	if err := x.MsgSend(m, drpcEncoding_File_protocol_proto{}); err != nil {
 		return err
 	}
