@@ -2,6 +2,7 @@ package store
 
 import (
 	"fmt"
+	"heisenberg/internal"
 	"math/rand"
 )
 
@@ -10,8 +11,12 @@ type replica struct {
 	clients map[string]*StoreClient
 }
 
-func (r *replica) addReplica(c *StoreClient, id string) {
+func (r *replica) addReplica(c *StoreClient, id string) error {
+	if c == nil {
+		return internal.NilClientError()
+	}
 	r.clients[id] = c
+	return nil
 }
 
 // Choose random replicas to distribute read requests evenly

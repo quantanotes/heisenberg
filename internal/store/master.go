@@ -56,7 +56,6 @@ func (m *StoreMasterServer) AddShard(ctx context.Context, msg *pb.Shard) (*pb.Em
 	err := m.shard.addShard(id)
 	if err != nil {
 		return log.LogErrNilReturn[pb.Empty]("AddShard", err, m.identity())
-		cc
 	}
 	return nil, nil
 }

@@ -12,6 +12,7 @@ const (
 	ConnectionErrorCode
 	InvalidServiceErrorCode
 	IncorrectServiceErrorCode
+	NilClientErrorCode
 
 	InvalidCollectionErrorCode
 	InvalidKeyErrorCode
@@ -46,6 +47,10 @@ func IncorrectServiceError(expected Service, recieved Service, args ...interface
 		recieved.String(),
 		args,
 	)
+}
+
+func NilClientError(args ...interface{}) error {
+	return fmt.Errorf("%d: client recieved was nil, trace: %v", NilClientErrorCode, args)
 }
 
 func InvalidCollectionError(collection []byte, args ...interface{}) error {

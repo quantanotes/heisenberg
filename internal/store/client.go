@@ -20,11 +20,18 @@ func NewStoreClient(ctx context.Context, addr string) (*StoreClient, error) {
 		return nil, err
 	}
 	return &StoreClient{addr, c.Conn, c.Client}, err
-
 }
 
 func (c *StoreClient) Close() {
 	c.conn.Close()
+}
+
+func (c *StoreClient) Connect(ctx context.Context, addr string) {
+	c.client.Connect(ctx, &pb.Connection{Address: addr})
+}
+
+func (c *StoreClient) AddShard(ctx context.Context, id string) {
+	c.client.AddShard(ctx, &pb.Shard{Shard: id})
 }
 
 func (c *StoreClient) Get(key []byte, collection []byte) *pb.Pair {

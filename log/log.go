@@ -70,15 +70,15 @@ func Fatal(msg string, args M) {
 	logrus.WithFields(logrus.Fields(args)).Fatal(msg)
 }
 
-func LogErrNilReturn[T interface{}](at string, err error) (*T, error) {
+func LogErrNilReturn[T interface{}](at string, err error, args M) (*T, error) {
 	e := fmt.Errorf("@%s, %v", at, err)
-	Error(e.Error(), nil)
+	Error(e.Error(), args)
 	return nil, e
 }
 
-func LogErrReturn(at string, err error) error {
+func LogErrReturn(at string, err error, args M) error {
 	e := fmt.Errorf("@%s, %v", at, err)
-	Error(e.Error(), nil)
+	Error(e.Error(), args)
 	return e
 }
 

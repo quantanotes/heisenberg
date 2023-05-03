@@ -10,27 +10,32 @@ type shard struct {
 	ring     ring                // Circular data structure for consistent hashing
 }
 
+func newShard() *shard {
+	return &shard{
+		replicas: make(map[string]*replica),
+		ring:     *newRing(),
+	}
+}
+
 func (s *shard) getShard(key []byte) (*replica, error) {
 	id := s.ring.getNode(key)
 	if id == "" {
-		return nil, internal.NoShardsError(nil)
+		return nil, internal.NoShardsError()
 	}
 	replica := s.replicas[id]
 	return replica, nil
 }
 
 func (s *shard) addShard(id string) error {
-	if !s.hasShard(id) {
-		return internal.InvalidShardError(id, nil)
-	}
 	old := *s
+	s.replicas[id] = &replica{clients: make(map[string]*StoreClient)}
 	s.ring.addNode(id)
 	return s.reshard(old)
 }
 
 func (s *shard) removeShard(id string) error {
 	if !s.hasShard(id) {
-		return internal.InvalidShardError(id, nil)
+		return internal.InvalidShardError(id)
 	}
 	old := *s
 	s.ring.removeNode(id)
@@ -50,8 +55,14 @@ func (s *shard) getReplicas() map[string]*replica {
 	return s.replicas
 }
 
-// Assumes non-erroneous usage
 func (s *shard) addReplica(c *StoreClient, id string, shard string) error {
-	s.replicas[shard].addReplica(c, id)
+	if c == nil {
+		return internal.NilClientError()
+	}
+	replica := s.replicas[shard]
+	if replica == nil {
+		return internal.InvalidShardError(id)
+	}
+	replica.addReplica(c, id)
 	return nil
 }

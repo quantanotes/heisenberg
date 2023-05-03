@@ -36,10 +36,16 @@ func TestMasterConnect(t *testing.T) {
 	mc, _ := NewStoreClient(ctx, "localhost:691")
 	defer mc.Close()
 
+	mc.AddShard(ctx, "a")
+
 	s, _ := NewStoreServer("a")
 	go s.Run(ctx, "localhost:692")
 	defer s.Close()
 
 	sc, _ := NewStoreClient(ctx, "localhost:692")
+	defer sc.Close()
+
+	mc.Connect(ctx, "localhost:692")
+
 	defer sc.Close()
 }

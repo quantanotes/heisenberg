@@ -18,6 +18,14 @@ message Pong {
     optional string shard = 4;
 }
 
+message Connection {
+    string address = 1;
+}
+
+message Shard {
+    string shard = 1;
+}
+
 message Value {
     uint32 index = 1;
     repeated float vec = 2 [packed=true];
@@ -42,6 +50,8 @@ message Item {
 
 service Service {
     rpc Ping(Empty) returns (Pong) {}
+    rpc Connect(Connection) returns (Empty) {}
+    rpc AddShard(Shard) returns (Empty) {}
     rpc Get(Key) returns (Pair) {}
     rpc Put(Pair) returns (Empty) {}
     rpc Delete(Key) returns (Empty) {}
