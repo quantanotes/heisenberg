@@ -34,6 +34,10 @@ func (h *hnsw) loadHNSW (path string) {
 	C.loadHNSW(C.CString(path), h.dim, h.space)
 }
 
+func (h *hnsw) saveHNSW (path string) {
+	C.saveHNSW(h.index, C.CString(path))
+}
+
 func (h *hnsw) addPoint(id int, vec []float32) error {
 	C.addPoint(h.index, (*C.float)(unsafe.Pointer(&vec[0])), C.ulong(id))
 	return nil
