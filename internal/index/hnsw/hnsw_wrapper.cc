@@ -63,7 +63,7 @@ void addPoint(HNSW hnsw, float *vec, unsigned long int id)
     ((hnswlib::HierarchicalNSW<float> *)hnsw)->addPoint(vec, id, true);
 }
 
-void deletePoint(HNSW hnsw, float *vec, unsigned long int id)
+void deletePoint(HNSW hnsw, unsigned long int id)
 {
     ((hnswlib::HierarchicalNSW<float> *)hnsw)->markDelete(id);
 }
