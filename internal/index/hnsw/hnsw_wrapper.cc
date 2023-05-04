@@ -9,8 +9,6 @@ hnswlib::SpaceInterface<float> *getSpace(int space_type, int dim)
     switch (space_type) {
         case 1:
             return new hnswlib::InnerProductSpace(dim);
-
-        // FIXME: Why does case 1 and case 2 have the same return value?
         case 2:
             return new hnswlib::InnerProductSpace(dim);
         case 3:
@@ -20,7 +18,6 @@ hnswlib::SpaceInterface<float> *getSpace(int space_type, int dim)
     }
 }
 
-// FIXME: initHNSW originally had space_type as a char - why the change to int? 
 HNSW initHNSW(int dim, unsigned long int max, int m, int ef, int seed, int space_type)
 {
     hnswlib::SpaceInterface<float> *space = getSpace(space_type, dim);
@@ -28,7 +25,6 @@ HNSW initHNSW(int dim, unsigned long int max, int m, int ef, int seed, int space
     return (HNSW)hnsw;
 }
 
-// FIXME: loadHNSW originally had space_type as a char - why the change to int? 
 HNSW loadHNSW(char *location, int dim, int space_type)
 {
     hnswlib::HierarchicalNSW<float> *hnsw;
@@ -80,8 +76,6 @@ int search(HNSW hnsw, float *vec, int k, int *labels)
     int size = result.size();
     // labels = new int[size];
     for (int i = 0; i < size; i++) {
-        // FIXME: the second value type of pair is hnswlib::labeltype which is size_t
-        // but we are using an integer. this might cause problems. we should consider uint32_t
         labels[i] = result.top().second;
         result.pop();
     }
