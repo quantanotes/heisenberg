@@ -6,6 +6,8 @@ package hnsw
 //#include "hnsw_wrapper.h"
 import "C"
 
+type hnswOptions struct{}
+
 type hnsw struct {
 	index C.hnsw
 }
