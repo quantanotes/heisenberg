@@ -68,7 +68,7 @@ void deletePoint(HNSW hnsw, unsigned long int id)
     ((hnswlib::HierarchicalNSW<float> *)hnsw)->markDelete(id);
 }
 
-int *search(HNSW hnsw, float *vec, int k, unsigned long int *label, float *dist)
+int *search(HNSW hnsw, float *vec, int k, int *labels)
 {
     std::priority_queue<std::pair<float, hnswlib::labeltype>> result;
     try {
@@ -78,10 +78,10 @@ int *search(HNSW hnsw, float *vec, int k, unsigned long int *label, float *dist)
     }
 
     int size = result.size();
-    int *ids = new int[size];
+    int *labels = new int[size];
     for (int i = 0; i < size; i++) {
-        ids[i] = result.top().second;
+        labels[i] = result.top().second;
         result.pop();
     }
-    return ids;
+    return size;
 }
