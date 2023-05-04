@@ -21,18 +21,15 @@ func NewClient(ctx context.Context, addr string, service Service) (*Client, erro
 	if err != nil {
 		return nil, err
 	}
-
 	client := &Client{
 		addr,
 		conn,
 		pb.NewDRPCServiceClient(conn),
 	}
-
 	err = client.validateClient(ctx, service)
 	if err != nil {
 		return nil, err
 	}
-
 	return client, nil
 }
 

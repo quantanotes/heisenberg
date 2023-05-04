@@ -1,7 +1,11 @@
 package index
 
 type index interface {
-	Add() error
-	Delete() error
-	Search() error
+	init() error
+	close() error
+	load() error
+	save() error
+	add() error
+	delete() error
+	search() error
 }
