@@ -12,7 +12,7 @@ extern "C"
     void freeHNSW(HNSW index);
     void addPoint(HNSW index, float *vec, unsigned long int label);
     void deletePoint(HNSW index, unsigned long int label);
-    int *search(HNSW index, float *vec, int k, int *labels);
+    int search(HNSW index, float *vec, int k, int *labels);
 #ifdef __cplusplus
 }
 #endif
