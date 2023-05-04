@@ -13,13 +13,13 @@ type store struct {
 	txPool map[string]*bbolt.Tx // Pending transactions
 }
 
-func newStore(path string) (*store, error) {
-	db, err := bbolt.Open(path, 0666, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &store{path, db, nil}, nil
-}
+// func newStore(path string) (*store, error) {
+// 	db, err := bbolt.Open(path, 0666, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &store{path, db, nil}, nil
+// }
 
 func loadStore(path string) (*store, error) {
 	db, err := bbolt.Open(path, 0666, nil)
@@ -36,6 +36,14 @@ func (s *store) close() {
 func (s *store) createCollection(collection []byte) error {
 	tx := func(tx *bbolt.Tx) error {
 		_, err := tx.CreateBucket(collection)
+		return err
+	}
+	return s.db.Update(tx)
+}
+
+func (s *store) deleteCollection(collection []byte) error {
+	tx := func(tx *bbolt.Tx) error {
+		err := tx.DeleteBucket(collection)
 		return err
 	}
 	return s.db.Update(tx)
@@ -82,8 +90,4 @@ func (s *store) delete(key []byte, collection []byte) error {
 		return b.Delete(key)
 	}
 	return s.db.Update(tx)
-}
-
-func beginTx() {
-
 }

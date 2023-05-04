@@ -108,22 +108,6 @@ func (m *StoreMasterServer) Ping(ctx context.Context, in *pb.Empty) (*pb.Pong, e
 	return pong, nil
 }
 
-func (m *StoreMasterServer) AddShard(ctx context.Context, in *pb.Shard) (*pb.Empty, error) {
-	old := *m.shard // to revert if database transaction fails
-	id := in.Shard
-	log.Info(fmt.Sprintf("adding shard with id %s", id), m.identity())
-	err := m.shard.addShard(id)
-	if err != nil {
-		return log.LogErrNilReturn[pb.Empty]("AddShard", err, m.identity())
-	}
-	err = m.saveConfig()
-	if err != nil {
-		m.shard = &old
-		return log.LogErrNilReturn[pb.Empty]("AddShard", err, m.identity())
-	}
-	return nil, nil
-}
-
 func (m *StoreMasterServer) Connect(ctx context.Context, in *pb.Connection) (*pb.Empty, error) {
 	addr := in.Address
 	log.Info(fmt.Sprintf("connecting client to server at %s", addr), m.identity())
@@ -149,12 +133,59 @@ func (m *StoreMasterServer) Connect(ctx context.Context, in *pb.Connection) (*pb
 	return nil, nil
 }
 
+func (m *StoreMasterServer) AddShard(ctx context.Context, in *pb.Shard) (*pb.Empty, error) {
+	old := *m.shard // to revert if database transaction fails
+	id := in.Shard
+	log.Info(fmt.Sprintf("adding shard with id %s", id), m.identity())
+	err := m.shard.addShard(id)
+	if err != nil {
+		return log.LogErrNilReturn[pb.Empty]("AddShard", err, m.identity())
+	}
+	err = m.saveConfig()
+	if err != nil {
+		m.shard = &old
+		return log.LogErrNilReturn[pb.Empty]("AddShard", err, m.identity())
+	}
+	return nil, nil
+}
+
+func (m *StoreMasterServer) RemoveShard(ctx context.Context, in *pb.Shard) (*pb.Empty, error) {
+	old := *m.shard // to revert if database transaction fails
+	id := in.Shard
+	log.Info(fmt.Sprintf("removing shard with id %s", id), m.identity())
+	err := m.shard.removeShard(id)
+	if err != nil {
+		return log.LogErrNilReturn[pb.Empty]("RemoveShard", err, m.identity())
+	}
+	err = m.saveConfig()
+	if err != nil {
+		m.shard = &old
+		return log.LogErrNilReturn[pb.Empty]("RemoveShard", err, m.identity())
+	}
+	return nil, nil
+}
+
 func (m *StoreMasterServer) CreateCollection(ctx context.Context, in *pb.Collection) (*pb.Empty, error) {
 	collection := in.Collection
-	log.Info(fmt.Sprintf("creating collection with name %s", string(collection)), m.identity())
+	log.Info(fmt.Sprintf("creating collection %s", string(collection)), m.identity())
 	for _, shard := range *m.shard.getReplicas() {
 		for _, replica := range shard.clients {
 			err := replica.CreateCollection(ctx, collection)
+			if err != nil {
+				_ = 0
+				// TODO : ROLL BACK TRANSACTIONS
+			}
+		}
+	}
+	return nil, nil
+}
+
+func (m *StoreMasterServer) DeleteCollection(ctx context.Context, in *pb.Collection) (*pb.Empty, error) {
+	collection := in.Collection
+	log.Info(fmt.Sprintf("deleting collection %s", string(collection)), m.identity())
+	for _, shard := range *m.shard.getReplicas() {
+		for _, replica := range shard.clients {
+			err := replica.DeleteCollection(ctx, collection)
 			if err != nil {
 				_ = 0
 				// TODO : ROLL BACK TRANSACTIONS
@@ -205,6 +236,21 @@ func (m *StoreMasterServer) Put(ctx context.Context, in *pb.Item) (*pb.Empty, er
 }
 
 func (m *StoreMasterServer) Delete(ctx context.Context, in *pb.Key) (*pb.Empty, error) {
+	key := in.Key
+	collection := in.Collection
+	log.Info(fmt.Sprintf("deleting value at key %s at collection %s", string(key), string(collection)), m.identity())
+	shard, err := m.shard.getShard(key)
+	if err != nil {
+		log.LogErrNilReturn[pb.Empty]("Put", err, m.identity())
+	}
+	// put to all replicas in shard, roll back all transactions if failiure on one node
+	for _, replica := range shard.clients {
+		err := replica.Delete(ctx, key, collection)
+		if err != nil {
+			_ = 0
+			// TODO : ROLL BACK TRANSACTIONS
+		}
+	}
 	return nil, nil
 }
 

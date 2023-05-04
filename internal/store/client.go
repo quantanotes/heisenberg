@@ -39,6 +39,11 @@ func (c *StoreClient) CreateCollection(ctx context.Context, colleciton []byte) e
 	return err
 }
 
+func (c *StoreClient) DeleteCollection(ctx context.Context, colleciton []byte) error {
+	_, err := c.client.DeleteCollection(ctx, &pb.Collection{Collection: colleciton})
+	return err
+}
+
 func (c *StoreClient) Get(ctx context.Context, key []byte, collection []byte) (*pb.Pair, error) {
 	pair, err := c.client.Get(ctx, &pb.Key{Key: key, Collection: collection})
 	return pair, err
@@ -46,6 +51,11 @@ func (c *StoreClient) Get(ctx context.Context, key []byte, collection []byte) (*
 
 func (c *StoreClient) Put(ctx context.Context, key []byte, value []byte, collection []byte) error {
 	_, err := c.client.Put(ctx, &pb.Item{Key: key, Value: value, Collection: collection})
+	return err
+}
+
+func (c *StoreClient) Delete(ctx context.Context, key []byte, collection []byte) error {
+	_, err := c.client.Delete(ctx, &pb.Key{Key: key, Collection: collection})
 	return err
 }
 

@@ -56,7 +56,9 @@ service Service {
     rpc Ping(Empty) returns (Pong) {}
     rpc Connect(Connection) returns (Empty) {}
     rpc AddShard(Shard) returns (Empty) {}
+    rpc RemoveShard(Shard) returns (Empty) {}
     rpc CreateCollection(Collection) returns (Empty) {}
+    rpc DeleteCollection(Collection) returns (Empty) {}
     rpc Get(Key) returns (Pair) {}
     rpc Put(Item) returns (Empty) {}
     rpc Delete(Key) returns (Empty) {}

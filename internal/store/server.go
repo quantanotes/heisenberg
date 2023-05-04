@@ -65,12 +65,26 @@ func (s *StoreServer) AddShard(ctx context.Context, in *pb.Shard) (*pb.Empty, er
 	return nil, nil
 }
 
+func (s *StoreServer) RemoveShard(ctx context.Context, in *pb.Shard) (*pb.Empty, error) {
+	return nil, nil
+}
+
 func (s *StoreServer) CreateCollection(ctx context.Context, in *pb.Collection) (*pb.Empty, error) {
 	collection := in.Collection
-	log.Info(fmt.Sprintf("creating collection with name %s", string(collection)), s.identity())
+	log.Info(fmt.Sprintf("creating collection %s", string(collection)), s.identity())
 	err := s.store.createCollection(collection)
 	if err != nil {
 		return log.LogErrNilReturn[pb.Empty]("CreateCollection", err, s.identity())
+	}
+	return nil, nil
+}
+
+func (s *StoreServer) DeleteCollection(ctx context.Context, in *pb.Collection) (*pb.Empty, error) {
+	collection := in.Collection
+	log.Info(fmt.Sprintf("deleting collection %s", string(collection)), s.identity())
+	err := s.store.deleteCollection(collection)
+	if err != nil {
+		return log.LogErrNilReturn[pb.Empty]("DeleteCollection", err, s.identity())
 	}
 	return nil, nil
 }
@@ -99,6 +113,13 @@ func (s *StoreServer) Put(ctx context.Context, in *pb.Item) (*pb.Empty, error) {
 }
 
 func (s *StoreServer) Delete(ctx context.Context, in *pb.Key) (*pb.Empty, error) {
+	key := in.Key
+	collection := in.Collection
+	log.Info(fmt.Sprintf("deleting value at key %s at collection %s", string(key), string(collection)), s.identity())
+	err := s.store.delete(key, collection)
+	if err != nil {
+		return log.LogErrNilReturn[pb.Empty]("Delete", err, s.identity())
+	}
 	return nil, nil
 }
 
