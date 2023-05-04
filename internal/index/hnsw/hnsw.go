@@ -45,7 +45,8 @@ func (h *hnsw) deletePoint(id int) error {
 }
 
 func (h *hnsw) search(query []float32, k int) ([]uint32, error) {
-	labels = make([]uint32, k)
+	// FIXME: we still use int here even though the labels in the hnswlib are of size_t type
+	labels = make([]int, k)
 	len = C.search(h.index, (*C.float)(unsafe.Pointer(&query[0])), k, (*C.int)(unsafe.Pointer(&labels[0])))
 	return labels, nil
 }

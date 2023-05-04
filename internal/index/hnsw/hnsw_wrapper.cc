@@ -68,7 +68,7 @@ void deletePoint(HNSW hnsw, unsigned long int id)
     ((hnswlib::HierarchicalNSW<float> *)hnsw)->markDelete(id);
 }
 
-int search(HNSW hnsw, float *vec, int k, size_t *labels)
+int search(HNSW hnsw, float *vec, int k, int *labels)
 {
     std::priority_queue<std::pair<float, hnswlib::labeltype>> result;
     try {
@@ -80,6 +80,8 @@ int search(HNSW hnsw, float *vec, int k, size_t *labels)
     int size = result.size();
     // labels = new int[size];
     for (int i = 0; i < size; i++) {
+        // FIXME: the second value type of pair is hnswlib::labeltype which is size_t
+        // but we are using an integer. this might cause problems. we should consider uint32_t
         labels[i] = result.top().second;
         result.pop();
     }
