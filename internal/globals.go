@@ -26,7 +26,7 @@ func (s Service) String() string {
 type SpaceType int
 
 const (
-	ip     SpaceType = 1
-	cosine SpaceType = 2
-	l2     SpaceType = 3
+	Ip     SpaceType = 1
+	Cosine SpaceType = 2
+	L2     SpaceType = 3
 )

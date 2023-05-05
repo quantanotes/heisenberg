@@ -1,6 +1,8 @@
 package index
 
-import "heisenberg/internal"
+import (
+	"heisenberg/internal"
+)
 
 type index interface {
 	init(space internal.SpaceType, dim int, max int) error

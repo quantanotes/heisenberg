@@ -8,9 +8,9 @@ extern "C"
     HNSW loadHNSW(char *location, int dim, int stype);
     bool saveHNSW(HNSW index, char *location);
     void freeHNSW(HNSW index);
-    void addPoint(HNSW index, float *vec, unsigned long int label);
-    void deletePoint(HNSW index, unsigned long int label);
-    int search(HNSW index, float *vec, int k, int *labels);
+    void addPoint(HNSW index, float *vec, unsigned long int id);
+    void deletePoint(HNSW index, unsigned long int id);
+    int search(HNSW index, float *vec, int k, unsigned long int *ids, float *dist);
 #ifdef __cplusplus
 }
 #endif

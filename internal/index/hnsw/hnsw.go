@@ -2,13 +2,14 @@
 package hnsw
 
 //#cgo CFLAGS: -I./ -g -Wall
-//#cgo LDFLAGS: -lhnsw
 //#include <stdlib.h>
 //#include "hnsw_wrapper.h"
 import "C"
 
 import (
+	"fmt"
 	"heisenberg/internal"
+	"heisenberg/internal/vector"
 	"unsafe"
 )
 
@@ -18,60 +19,66 @@ type hnswOptions struct {
 }
 
 type hnsw struct {
-	index     	C.HNSW
-	spaceType 	internal.spaceType
-	dim       	int
-	max       	int
-	normalise 	bool
-	opts      	hnswOptions
+	index     C.HNSW
+	space     internal.SpaceType
+	dim       int
+	max       int
+	normalise bool
+	opts      hnswOptions
 }
 
-func newHNSWOptions(m int, ef int) *hnswOptions {
-	return &hnswOptions{
-		m:  m,
-		ef: ef,
-	}
-}
-
-func newHNSW(space internal.spaceType, dim int, max int, opts *hnswOptions, seed int) *hnsw {
+func newHNSW(space internal.SpaceType, dim int, max int, opts *hnswOptions, seed int) *hnsw {
 	return &hnsw{
-		index:     C.initHNSW(dim, max, opts.m, opts.ef, seed),
-		normalise: space == index.cosine,
+		index:     C.initHNSW(C.int(dim), C.ulong(max), C.int(opts.m), C.int(opts.ef), C.int(seed), C.int(space)),
+		space:     space,
+		dim:       dim,
+		max:       max,
+		normalise: space == internal.Cosine,
 		opts:      *opts,
 	}
 }
 
-func (h *hnsw) loadHNSW (path string) error {
-	ret := C.loadHNSW(C.CString(path), h.dim, h.space)
-	if ret == nil {
-		return HNSWOperationError("loadHNSW failed")
+func (h *hnsw) load(path string) error {
+	res := C.loadHNSW(C.CString(path), C.int(h.dim), C.int(h.space))
+	if res == nil {
+		return fmt.Errorf("hnsw load failed")
 	}
 	return nil
 }
 
-func (h *hnsw) saveHNSW (path string) error {
-	ret := C.saveHNSW(h.index, C.CString(path))
-	if ret == false {
-		return HNSWOperationError("saveHNSW failed")
+func (h *hnsw) save(path string) error {
+	res := C.saveHNSW(h.index, C.CString(path))
+	if !res {
+		return fmt.Errorf("hnsw save failed")
 	}
 	return nil
 }
 
-func (h *hnsw) add(id int, vec []float32) error {
+func (h *hnsw) add(vec []float32, id int) error {
+	if h.normalise {
+		vec = vector.Normalise(vec)
+	}
 	C.addPoint(h.index, (*C.float)(unsafe.Pointer(&vec[0])), C.ulong(id))
 	return nil
 }
 
-func (h *HNSW) delete(id int) error {
+func (h *hnsw) delete(id int) error {
 	C.deletePoint(h.index, C.ulong(id))
 	return nil
 }
 
-func (h *hnsw) search(query []float32, k int) ([]uint32, error) {
-	labels = make([]int, k)
-	len = C.search(h.index, (*C.float)(unsafe.Pointer(&query[0])), k, (*C.int)(unsafe.Pointer(&labels[0])))
-	if len == -1 {
-		return nil, HNSWOperationError("search failed")
+func (h *hnsw) search(query []float32, k int) ([]int, error) {
+	cids := make([]C.ulong, k)
+	len := int(C.search(h.index, (*C.float)(unsafe.Pointer(&query[0])), C.int(k), &cids[0], &cdists[0]))
+	if h.normalise {
+		query = vector.Normalise(query)
 	}
-	return labels, nil
+	if len == -1 {
+		return nil, fmt.Errorf("hnsw search failed")
+	}
+	ids := make([]int, len)
+	for i := 0; i < len; i++ {
+		ids[i] = int(cids[i])
+	}
+	return ids, nil
 }
