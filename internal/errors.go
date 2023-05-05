@@ -20,6 +20,8 @@ const (
 
 	NoShardsErrorCode
 	InvalidShardErrorCode
+
+	HNSWOperationErrorCode
 )
 
 func ConnectionError(addr string, args ...interface{}) error {
@@ -95,5 +97,13 @@ func InvalidShardError(id string, args ...interface{}) error {
 		NoShardsErrorCode,
 		id,
 		args,
+	)
+}
+
+func HNSWOperationError(method string) error {
+	return fmt.Errorf(
+		"%d: hnswlib operation failed, function: %v",
+		HNSWOperationErrorCode,
+		method,
 	)
 }
