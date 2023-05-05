@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"heisenberg/internal/pb"
+	"heisenberg/log"
 	"net"
 
 	"storj.io/drpc/drpcmux"
@@ -20,4 +21,9 @@ func NewServer(ctx context.Context, addr string, init pb.DRPCServiceServer) (*ne
 		return nil, nil, err
 	}
 	return &lis, drpcserver.New(m), nil
+}
+
+// Identify server for logging
+func Identity(lis *net.Listener) log.M {
+	return log.M{"host": (*lis).Addr().String()}
 }

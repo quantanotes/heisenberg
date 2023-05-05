@@ -47,12 +47,10 @@ func (s *StoreServer) Close() {
 }
 
 func (s *StoreServer) Ping(ctx context.Context, in *pb.Empty) (*pb.Pong, error) {
-	shard := "a"
 	pong := &pb.Pong{
 		Id:      s.id,
 		Master:  false,
 		Service: uint32(internal.StoreService),
-		Shard:   &shard,
 	}
 	return pong, nil
 }
