@@ -41,12 +41,20 @@ func newHNSW(space internal.spaceType, dim int, max int, opts *hnswOptions, seed
 	}
 }
 
-func (h *hnsw) loadHNSW (path string) {
-	C.loadHNSW(C.CString(path), h.dim, h.space)
+func (h *hnsw) loadHNSW (path string) error {
+	ret := C.loadHNSW(C.CString(path), h.dim, h.space)
+	if ret == nil {
+		return HNSWOperationError("loadHNSW failed")
+	}
+	return nil
 }
 
-func (h *hnsw) saveHNSW (path string) {
-	C.saveHNSW(h.index, C.CString(path))
+func (h *hnsw) saveHNSW (path string) error {
+	ret := C.saveHNSW(h.index, C.CString(path))
+	if ret == false {
+		return HNSWOperationError("saveHNSW failed")
+	}
+	return nil
 }
 
 func (h *hnsw) add(id int, vec []float32) error {
@@ -62,5 +70,8 @@ func (h *HNSW) delete(id int) error {
 func (h *hnsw) search(query []float32, k int) ([]uint32, error) {
 	labels = make([]int, k)
 	len = C.search(h.index, (*C.float)(unsafe.Pointer(&query[0])), k, (*C.int)(unsafe.Pointer(&labels[0])))
+	if len == -1 {
+		return nil, HNSWOperationError("search failed")
+	}
 	return labels, nil
 }

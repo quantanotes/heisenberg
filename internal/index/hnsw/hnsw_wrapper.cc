@@ -70,7 +70,7 @@ int search(HNSW hnsw, float *vec, int k, int *labels)
     try {
         result = ((hnswlib::HierarchicalNSW<float> *)hnsw)->searchKnn(vec, k);
     } catch(const std::exception_ptr e) {
-        return 0;
+        return -1;
     }
 
     int size = result.size();
