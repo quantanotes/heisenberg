@@ -6,7 +6,11 @@ package hnsw
 //#include <stdlib.h>
 //#include "hnsw_wrapper.h"
 import "C"
-import "unsafe"
+
+import (
+	"heisenberg/internal"
+	"unsafe"
+)
 
 type hnswOptions struct {
 	m  int
@@ -29,9 +33,9 @@ func newHNSWOptions(m int, ef int) *hnswOptions {
 	}
 }
 
-func newHNSW(space internal.spaceType, dim int, max int, opts *hnswOptions) *hnsw {
+func newHNSW(space internal.spaceType, dim int, max int, opts *hnswOptions, seed int) *hnsw {
 	return &hnsw{
-		index:     C.initHNSW(),
+		index:     C.initHNSW(dim, max, opts.m, opts.ef, seed),
 		normalise: space == index.cosine,
 		opts:      *opts,
 	}
@@ -45,12 +49,12 @@ func (h *hnsw) saveHNSW (path string) {
 	C.saveHNSW(h.index, C.CString(path))
 }
 
-func (h *hnsw) addPoint(id int, vec []float32) error {
+func (h *hnsw) add(id int, vec []float32) error {
 	C.addPoint(h.index, (*C.float)(unsafe.Pointer(&vec[0])), C.ulong(id))
 	return nil
 }
 
-func (h *hnsw) deletePoint(id int) error {
+func (h *HNSW) delete(id int) error {
 	C.deletePoint(h.index, C.ulong(id))
 	return nil
 }

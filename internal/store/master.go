@@ -14,51 +14,51 @@ import (
 const shardKey = "__HEISENBERG_SHARD_CONFIG"
 const configKey = "__HEISENBERG_CONFIG"
 
-type StoreMasterServer struct {
+type MasterStoreServer struct {
 	server *drpcserver.Server
 	lis    *net.Listener
 	shard  *shard
 	store  *store
 }
 
-func NewStoreMasterServer(path string) (*StoreMasterServer, error) {
-	m := &StoreMasterServer{}
+func NewStoreMasterServer(path string) (*MasterStoreServer, error) {
+	m := &MasterStoreServer{}
 	store, err := loadStore(path)
 	if err != nil {
-		return log.LogErrNilReturn[StoreMasterServer]("LoadStoreMasterServer", err, m.identity())
+		return log.LogErrNilReturn[MasterStoreServer]("LoadStoreMasterServer", err, m.identity())
 	}
 	m.store = store
 	m.initConfig()
 	if err != nil {
-		return log.LogErrNilReturn[StoreMasterServer]("LoadStoreMasterError", err, m.identity())
+		return log.LogErrNilReturn[MasterStoreServer]("LoadStoreMasterError", err, m.identity())
 	}
 	m.shard = newShard()
 	err = m.saveConfig()
 	if err != nil {
-		return log.LogErrNilReturn[StoreMasterServer]("LoadStoreMasterError", err, m.identity())
+		return log.LogErrNilReturn[MasterStoreServer]("LoadStoreMasterError", err, m.identity())
 	}
 	return m, nil
 }
 
-func LoadStoreMasterServer(path string) (*StoreMasterServer, error) {
-	m := &StoreMasterServer{}
+func LoadStoreMasterServer(path string) (*MasterStoreServer, error) {
+	m := &MasterStoreServer{}
 	store, err := loadStore(path)
 	if err != nil {
-		log.LogErrNilReturn[StoreMasterServer]("LoadStoreMasterServer", err, m.identity())
+		log.LogErrNilReturn[MasterStoreServer]("LoadStoreMasterServer", err, m.identity())
 	}
 	m.store = store
 	err = m.loadConfig()
 	if err != nil {
-		log.LogErrNilReturn[StoreMasterServer]("LoadStoreMasterServer", err, m.identity())
+		log.LogErrNilReturn[MasterStoreServer]("LoadStoreMasterServer", err, m.identity())
 	}
 	return m, nil
 }
 
-func (m *StoreMasterServer) initConfig() error {
+func (m *MasterStoreServer) initConfig() error {
 	return m.store.createCollection([]byte(configKey))
 }
 
-func (m *StoreMasterServer) loadConfig() error {
+func (m *MasterStoreServer) loadConfig() error {
 	raw, err := m.store.get([]byte(shardKey), []byte(configKey))
 	if err != nil {
 		return err
@@ -71,7 +71,7 @@ func (m *StoreMasterServer) loadConfig() error {
 	return nil
 }
 
-func (m *StoreMasterServer) saveConfig() error {
+func (m *MasterStoreServer) saveConfig() error {
 	val, err := m.shard.toByte()
 	if err != nil {
 		return err
@@ -79,7 +79,7 @@ func (m *StoreMasterServer) saveConfig() error {
 	return m.store.put([]byte(shardKey), val, []byte(configKey))
 }
 
-func (m *StoreMasterServer) Run(ctx context.Context, addr string) error {
+func (m *MasterStoreServer) Run(ctx context.Context, addr string) error {
 	lis, server, err := internal.NewServer(ctx, addr, m)
 	if err != nil {
 		log.LogErrReturn("RunStoreMasterServer", err, m.identity())
@@ -90,14 +90,14 @@ func (m *StoreMasterServer) Run(ctx context.Context, addr string) error {
 	return m.server.Serve(ctx, *m.lis)
 }
 
-func (m *StoreMasterServer) Close() {
+func (m *MasterStoreServer) Close() {
 	log.Info("closing master store server", m.identity())
 	m.saveConfig()
 	m.store.close()
 	(*m.lis).Close()
 }
 
-func (m *StoreMasterServer) Ping(ctx context.Context, in *pb.Empty) (*pb.Pong, error) {
+func (m *MasterStoreServer) Ping(ctx context.Context, in *pb.Empty) (*pb.Pong, error) {
 	log.Info("recieved ping", m.identity())
 	pong := &pb.Pong{
 		Id:      "0",
@@ -108,7 +108,7 @@ func (m *StoreMasterServer) Ping(ctx context.Context, in *pb.Empty) (*pb.Pong, e
 	return pong, nil
 }
 
-func (m *StoreMasterServer) Connect(ctx context.Context, in *pb.Connection) (*pb.Empty, error) {
+func (m *MasterStoreServer) Connect(ctx context.Context, in *pb.Connection) (*pb.Empty, error) {
 	addr := in.Address
 	log.Info(fmt.Sprintf("connecting client to server at %s", addr), m.identity())
 	c, err := NewStoreClient(ctx, addr)
@@ -133,7 +133,7 @@ func (m *StoreMasterServer) Connect(ctx context.Context, in *pb.Connection) (*pb
 	return nil, nil
 }
 
-func (m *StoreMasterServer) AddShard(ctx context.Context, in *pb.Shard) (*pb.Empty, error) {
+func (m *MasterStoreServer) AddShard(ctx context.Context, in *pb.Shard) (*pb.Empty, error) {
 	old := *m.shard // to revert if database transaction fails
 	id := in.Shard
 	log.Info(fmt.Sprintf("adding shard with id %s", id), m.identity())
@@ -149,7 +149,7 @@ func (m *StoreMasterServer) AddShard(ctx context.Context, in *pb.Shard) (*pb.Emp
 	return nil, nil
 }
 
-func (m *StoreMasterServer) RemoveShard(ctx context.Context, in *pb.Shard) (*pb.Empty, error) {
+func (m *MasterStoreServer) RemoveShard(ctx context.Context, in *pb.Shard) (*pb.Empty, error) {
 	old := *m.shard // to revert if database transaction fails
 	id := in.Shard
 	log.Info(fmt.Sprintf("removing shard with id %s", id), m.identity())
@@ -165,7 +165,7 @@ func (m *StoreMasterServer) RemoveShard(ctx context.Context, in *pb.Shard) (*pb.
 	return nil, nil
 }
 
-func (m *StoreMasterServer) CreateCollection(ctx context.Context, in *pb.Collection) (*pb.Empty, error) {
+func (m *MasterStoreServer) CreateCollection(ctx context.Context, in *pb.Collection) (*pb.Empty, error) {
 	collection := in.Collection
 	log.Info(fmt.Sprintf("creating collection %s", string(collection)), m.identity())
 	for _, shard := range *m.shard.getReplicas() {
@@ -180,7 +180,7 @@ func (m *StoreMasterServer) CreateCollection(ctx context.Context, in *pb.Collect
 	return nil, nil
 }
 
-func (m *StoreMasterServer) DeleteCollection(ctx context.Context, in *pb.Collection) (*pb.Empty, error) {
+func (m *MasterStoreServer) DeleteCollection(ctx context.Context, in *pb.Collection) (*pb.Empty, error) {
 	collection := in.Collection
 	log.Info(fmt.Sprintf("deleting collection %s", string(collection)), m.identity())
 	for _, shard := range *m.shard.getReplicas() {
@@ -195,7 +195,7 @@ func (m *StoreMasterServer) DeleteCollection(ctx context.Context, in *pb.Collect
 	return nil, nil
 }
 
-func (m *StoreMasterServer) Get(ctx context.Context, in *pb.Key) (*pb.Pair, error) {
+func (m *MasterStoreServer) Get(ctx context.Context, in *pb.Key) (*pb.Pair, error) {
 	key := in.Key
 	collection := in.Collection
 	log.Info(fmt.Sprintf("getting value at key %s at collection %s", string(key), string(collection)), m.identity())
@@ -215,7 +215,7 @@ func (m *StoreMasterServer) Get(ctx context.Context, in *pb.Key) (*pb.Pair, erro
 	return res, nil
 }
 
-func (m *StoreMasterServer) Put(ctx context.Context, in *pb.Item) (*pb.Empty, error) {
+func (m *MasterStoreServer) Put(ctx context.Context, in *pb.Item) (*pb.Empty, error) {
 	key := in.Key
 	value := in.Value
 	collection := in.Collection
@@ -235,7 +235,7 @@ func (m *StoreMasterServer) Put(ctx context.Context, in *pb.Item) (*pb.Empty, er
 	return nil, nil
 }
 
-func (m *StoreMasterServer) Delete(ctx context.Context, in *pb.Key) (*pb.Empty, error) {
+func (m *MasterStoreServer) Delete(ctx context.Context, in *pb.Key) (*pb.Empty, error) {
 	key := in.Key
 	collection := in.Collection
 	log.Info(fmt.Sprintf("deleting value at key %s at collection %s", string(key), string(collection)), m.identity())
@@ -254,7 +254,7 @@ func (m *StoreMasterServer) Delete(ctx context.Context, in *pb.Key) (*pb.Empty, 
 	return nil, nil
 }
 
-func (m *StoreMasterServer) identity() log.M {
+func (m *MasterStoreServer) identity() log.M {
 	host := "nil"
 	if m.lis != nil {
 		host = (*m.lis).Addr().String()
