@@ -15,7 +15,7 @@ type hnswOptions struct {
 
 type hnsw struct {
 	index     	C.HNSW
-	spaceType 	int
+	spaceType 	internal.spaceType
 	dim       	int
 	max       	int
 	normalise 	bool
@@ -29,7 +29,7 @@ func newHNSWOptions(m int, ef int) *hnswOptions {
 	}
 }
 
-func newHNSW(space int, dim int, max int, opts *hnswOptions) *hnsw {
+func newHNSW(space internal.spaceType, dim int, max int, opts *hnswOptions) *hnsw {
 	return &hnsw{
 		index:     C.initHNSW(),
 		normalise: space == index.cosine,
