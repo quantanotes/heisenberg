@@ -4,12 +4,17 @@ import (
 	"heisenberg/core"
 	"heisenberg/server"
 	"os"
-	"path/filepath"
 )
 
 func main() {
-	wd, _ := os.Getwd()
-	h := core.NewHeisenberg(filepath.Join(wd, "/.database/"))
+	var path string = os.Getenv("HEISENBERG_PATH")
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err = os.MkdirAll(path, 0755)
+		if err != nil {
+			panic(err)
+		}
+	}
+	h := core.NewHeisenberg(path)
 	defer h.Close()
-	server.RunAPI(h, "localhost:8080")
+	server.RunAPI(h, ":8080")
 }
