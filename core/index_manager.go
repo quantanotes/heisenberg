@@ -21,6 +21,7 @@ type IndexManager struct {
 
 func (im *IndexManager) New(conf indexConfig) {
 	idx := NewIndex(conf)
+	idx.Save(im.GetPath(conf.Name))
 	im.push(idx)
 }
 

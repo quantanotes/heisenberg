@@ -9,7 +9,7 @@ import (
 
 func main() {
 	wd, _ := os.Getwd()
-	h := core.NewHeisenberg(filepath.Join(wd, "/data/"))
+	h := core.NewHeisenberg(filepath.Join(wd, "/.database/"))
 	defer h.Close()
-	server.RunAPI(h)
+	server.RunAPI(h, "localhost:8080")
 }

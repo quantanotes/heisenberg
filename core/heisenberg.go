@@ -132,7 +132,7 @@ func (h *Heisenberg) Put(collection string, key string, vec []float32, meta map[
 			}
 		} else {
 			if vec == nil {
-				return errors.New("vec cannot be empty")
+				return errors.New("vector cannot be empty")
 			}
 			val.Index = i.Next()
 			val.Vector = vec

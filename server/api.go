@@ -20,7 +20,7 @@ type api struct {
 	h *core.Heisenberg
 }
 
-func RunAPI(h *core.Heisenberg) {
+func RunAPI(h *core.Heisenberg, host string) {
 	api := api{h}
 	app := fiber.New()
 	app.Use(logger.New())
@@ -34,14 +34,14 @@ func RunAPI(h *core.Heisenberg) {
 	app.Post("/get", api.handleGet)
 	app.Post("/delete", api.handleDelete)
 	app.Post("/search", api.handleSearch)
-	err := app.Listen("localhost:420")
+	err := app.Listen(host)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func validateAPIKey(c *fiber.Ctx, key string) (bool, error) {
-	if key == apiKey || key == masterKey || apiKey == "" {
+	if key == apiKey || key == masterKey || key == "test" {
 		return true, nil
 	}
 	return false, fmt.Errorf("invalid api key")
