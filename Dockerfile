@@ -4,7 +4,7 @@ RUN apk add --no-cache --update go gcc g++
 
 ENV CGO_ENABLED=1
 
-ENV GOFLAGS=-mod=vendor
+ENV GOFLAGS=-mod=mod
 
 WORKDIR /app
 
