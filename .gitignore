@@ -13,4 +13,6 @@
 # Go workspace file
 go.work
 
+/vendor
+
 .database
