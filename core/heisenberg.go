@@ -138,7 +138,6 @@ func (h *Heisenberg) Put(collection string, key string, vec []float32, meta map[
 			val.Vector = vec
 			val.Meta = meta
 			// Store index-key mapping in mapping bucket
-			fmt.Printf("Mapping %v -> %v\n", val.Index, string(kb))
 			m.Put(utils.IntToBytes(int(val.Index)), kb)
 		}
 		data, err := val.Serialise()

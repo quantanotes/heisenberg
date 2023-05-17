@@ -41,7 +41,7 @@ func RunAPI(h *core.Heisenberg, host string) {
 }
 
 func validateAPIKey(c *fiber.Ctx, key string) (bool, error) {
-	if key == apiKey || key == masterKey || key == "test" {
+	if key == apiKey || key == masterKey {
 		return true, nil
 	}
 	return false, fmt.Errorf("invalid api key")

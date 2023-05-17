@@ -1,0 +1,35 @@
+# fly.toml app configuration file generated for heisenberg on 2023-05-17T01:01:48+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "heisenberg"
+primary_region = "lhr"
+
+[env]
+  HEISENBERG_API_KEY = "1"
+  HEISENBERG_MASTER_KEY = "0"
+
+[mounts]
+  source = "heisenberg"
+  destination = "/.heisenberg"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.tcp_checks]]
+    interval = "10s"
+    timeout = "2s"
+    restart_limit = 0
