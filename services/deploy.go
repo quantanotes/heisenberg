@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/digitalocean/godo"
+	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -14,8 +15,8 @@ const (
 	masterKey = ""
 )
 
-func handleDeploy() {
-
+func handleDeploy(c *fiber.Ctx) error {
+	return nil
 }
 
 func deploy(id string, apiKey string, region string, size string) error {
@@ -28,9 +29,7 @@ func deploy(id string, apiKey string, region string, size string) error {
 		Image: godo.DropletCreateImage{
 			Slug: "ubuntu-20-04-x64",
 		},
-		SSHKeys: []godo.DropletCreateSSHKey{
-			{ID: sshKey},
-		},
+		SSHKeys: []godo.DropletCreateSSHKey{},
 	}
 	droplet, _, err := client.Droplets.Create(ctx, req)
 	if err != nil {
@@ -84,7 +83,7 @@ func install(sess *ssh.Session, apiKey string) error {
 	if err != nil {
 		return err
 	}
-	cmd = "sudo apt update && sudo apt upgrade && sudo apt install gcc && sudo snap install go --classic"
+	cmd = "sudo apt update && sudo apt upgrade && sudo apt install gcc -y && sudo apt install g++ -y && sudo snap install go --classic"
 	err = sess.Run(cmd)
 	if err != nil {
 		return err
