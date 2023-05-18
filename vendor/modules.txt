@@ -1,0 +1,80 @@
+# github.com/andybalholm/brotli v1.0.5
+## explicit; go 1.12
+github.com/andybalholm/brotli
+# github.com/bahlo/generic-list-go v0.2.0
+## explicit; go 1.18
+github.com/bahlo/generic-list-go
+# github.com/buger/jsonparser v1.1.1
+## explicit; go 1.13
+github.com/buger/jsonparser
+# github.com/gofiber/fiber/v2 v2.45.0
+## explicit; go 1.20
+github.com/gofiber/fiber/v2
+github.com/gofiber/fiber/v2/internal/schema
+github.com/gofiber/fiber/v2/middleware/logger
+github.com/gofiber/fiber/v2/utils
+# github.com/gofiber/keyauth/v2 v2.2.1
+## explicit; go 1.17
+github.com/gofiber/keyauth/v2
+# github.com/google/uuid v1.3.0
+## explicit
+github.com/google/uuid
+# github.com/klauspost/compress v1.16.5
+## explicit; go 1.18
+github.com/klauspost/compress/flate
+github.com/klauspost/compress/gzip
+github.com/klauspost/compress/zlib
+# github.com/mailru/easyjson v0.7.7
+## explicit; go 1.12
+github.com/mailru/easyjson/buffer
+github.com/mailru/easyjson/jwriter
+# github.com/mattn/go-colorable v0.1.13
+## explicit; go 1.15
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.18
+## explicit; go 1.15
+github.com/mattn/go-isatty
+# github.com/mattn/go-runewidth v0.0.14
+## explicit; go 1.9
+github.com/mattn/go-runewidth
+# github.com/philhofer/fwd v1.1.2
+## explicit; go 1.15
+github.com/philhofer/fwd
+# github.com/rivo/uniseg v0.4.4
+## explicit; go 1.18
+github.com/rivo/uniseg
+# github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94
+## explicit; go 1.13
+github.com/savsgio/dictpool
+# github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee
+## explicit; go 1.20
+github.com/savsgio/gotils/strconv
+# github.com/sirupsen/logrus v1.9.0
+## explicit; go 1.13
+github.com/sirupsen/logrus
+# github.com/tinylib/msgp v1.1.8
+## explicit; go 1.15
+github.com/tinylib/msgp/msgp
+# github.com/valyala/bytebufferpool v1.0.0
+## explicit
+github.com/valyala/bytebufferpool
+# github.com/valyala/fasthttp v1.47.0
+## explicit; go 1.20
+github.com/valyala/fasthttp
+github.com/valyala/fasthttp/fasthttputil
+github.com/valyala/fasthttp/reuseport
+github.com/valyala/fasthttp/stackless
+# github.com/valyala/tcplisten v1.0.0
+## explicit; go 1.12
+github.com/valyala/tcplisten
+# github.com/wk8/go-ordered-map/v2 v2.1.7
+## explicit; go 1.18
+github.com/wk8/go-ordered-map/v2
+# go.etcd.io/bbolt v1.3.7
+## explicit; go 1.17
+go.etcd.io/bbolt
+# golang.org/x/sys v0.8.0
+## explicit; go 1.17
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/unix
+golang.org/x/sys/windows
