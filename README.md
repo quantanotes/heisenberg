@@ -48,6 +48,7 @@ import (
 func main() {
     words := getWords()
     h := NewHeisenberg("./path/to/heisenberg/folder")
+    
     // Collections are an isolated search group of vectors.
     // To create a new collection specify the name, the size of vectors to be stored and the similarity metric.
     if err := h.NewCollection("people", 2, utils.Cosine); err != nil {
@@ -79,3 +80,4 @@ func main() {
 ## Contact/Contribute
 
 Our plan is to turn Heisenberg into an intelligent memory source for complex AI systems. If you're interested in becoming a part of our mission join our discord community [here](https://discord.com/invite/GAADW4R9wM) where you can connect with us.
+
