@@ -41,19 +41,43 @@ This gives us a semantic map of words which are closely related. We can then sea
 import (
     "fmt"
     "heisenberg/core"
+    "heisenberg/utils"
 )
 
 
 func main() {
     words := getWords()
     h := NewHeisenberg("./path/to/heisenberg/folder")
+    
     // Collections are an isolated search group of vectors.
-    // To create a new collection specify the name, and the size of vectors to be stored
-    err := h.NewCollection("people", 2)
+    // To create a new collection specify the name, the size of vectors to be stored and the similarity metric.
+    if err := h.NewCollection("people", 2, utils.Cosine); err != nil {
+        panic(err)
+    }
+
+    for k, v := range words {
+        // Store the vectors in the collection "people"
+        // Each vector corresponds to a key (the word in this case)
+        // You can retrieve a vector using the key via h.Get(collection, key)
+        if err := h.Put("people", k, v, {}); err != nil {
+            panic(err)
+        }
+    }
+
+    // Find the three closest words to man
+    results, err := h.Search("people", words["man"], 3)
     if err != nil {
         panic(err)
     }
 
+    fmt.Println("Words closest to man: ")
+    for result := range results {
+        fmt.Println("%s", result.key)
+    }
 }
-
 ```
+
+## Contact/Contribute
+
+Our plan is to turn Heisenberg into an intelligent memory source for complex AI systems. If you're interested in becoming a part of our mission join our discord community [here](https://discord.com/invite/GAADW4R9wM) where you can connect with us.
+
