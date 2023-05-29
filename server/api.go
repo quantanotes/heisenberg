@@ -17,11 +17,11 @@ var apiKey = os.Getenv("HEISENBERG_API_KEY")
 var masterKey = os.Getenv("HEISENBERG_MASTER_KEY")
 
 type api struct {
-	h *core.Heisenberg
+	db *core.DB
 }
 
-func RunAPI(h *core.Heisenberg, host string) {
-	api := api{h}
+func RunAPI(db *core.DB, host string) {
+	api := api{db}
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(keyauth.New(keyauth.Config{
@@ -59,7 +59,7 @@ func (a *api) handleNewCollection(c *fiber.Ctx) error {
 	}
 	log.Trace(fmt.Sprintf("creating collection %s", b.Name), nil)
 	space := utils.SpaceFromString(b.Space)
-	err := a.h.NewCollection(b.Name, b.Dim, space)
+	err := a.db.NewCollection(b.Name, b.Dim, space)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
@@ -75,7 +75,7 @@ func (a *api) handleDeleteCollection(c *fiber.Ctx) error {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
 	}
-	err := a.h.DeleteCollection(b.Name)
+	err := a.db.DeleteCollection(b.Name)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
@@ -94,7 +94,7 @@ func (a *api) handlePut(c *fiber.Ctx) error {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
 	}
-	err := a.h.Put(b.Collection, b.Key, b.Vector, b.Meta)
+	err := a.db.Put(b.Collection, b.Key, b.Vector, b.Meta)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
@@ -111,7 +111,7 @@ func (a *api) handleGet(c *fiber.Ctx) error {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
 	}
-	entry, err := a.h.Get(b.Collection, b.Key)
+	entry, err := a.db.Get(b.Collection, b.Key)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
@@ -133,7 +133,7 @@ func (a *api) handleDelete(c *fiber.Ctx) error {
 		log.Error(err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	err := a.h.Delete(b.Collection, b.Key)
+	err := a.db.Delete(b.Collection, b.Key)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
@@ -151,7 +151,7 @@ func (a *api) handleSearch(c *fiber.Ctx) error {
 		log.Error(err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	res, err := a.h.Search(b.Collection, b.Query, b.K)
+	res, err := a.db.Search(b.Collection, b.Query, b.K)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
