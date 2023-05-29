@@ -19,18 +19,18 @@ type IndexManager struct {
 	path    string
 }
 
+func NewIndexManager(path string, max uint) *IndexManager {
+	return &IndexManager{
+		indices: orderedmap.New[string, *Index](max),
+		max:     max,
+		path:    path,
+	}
+}
+
 func (im *IndexManager) New(conf indexConfig) {
 	idx := NewIndex(conf)
 	idx.Save(im.GetPath(conf.Name))
 	im.push(idx)
-}
-
-func NewIndexManager(path string, max uint) *IndexManager {
-	return &IndexManager{
-		indices: orderedmap.New[string, *Index](),
-		max:     max,
-		path:    path,
-	}
 }
 
 func (im *IndexManager) Close() {
