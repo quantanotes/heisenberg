@@ -17,7 +17,7 @@ func main() {
 			panic(err)
 		}
 	}
-	h := core.NewHeisenberg(path)
-	defer h.Close()
-	server.RunAPI(h, ":8080")
+	db := core.NewDB(path)
+	defer db.Close()
+	server.RunAPI(db, ":8080")
 }
