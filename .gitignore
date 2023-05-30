@@ -20,5 +20,5 @@ go.work
 
 .database
 
-// default heisenberg data
+# default heisenberg data
 .heisenberg/
