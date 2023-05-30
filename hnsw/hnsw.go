@@ -2,6 +2,7 @@
 package hnsw
 
 //#cgo CFLAGS: -I./ -g -Wall
+//#cgo CXXFLAGS: -std=c++11
 //#include <stdlib.h>
 //#include "hnsw_wrapper.h"
 import "C"

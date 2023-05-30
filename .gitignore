@@ -19,3 +19,6 @@ go.work
 /vendor
 
 .database
+
+// default heisenberg data
+.heisenberg/
