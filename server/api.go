@@ -3,9 +3,9 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"heisenberg/core"
-	"heisenberg/log"
-	"heisenberg/utils"
+	"github.com/quantanotes/heisenberg/core"
+	"github.com/quantanotes/heisenberg/log"
+	"github.com/quantanotes/heisenberg/utils"
 	"os"
 
 	"github.com/gofiber/fiber/v2"

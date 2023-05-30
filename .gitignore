@@ -10,9 +10,15 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# goland
+.idea/
+
 # Go workspace file
 go.work
 
 /vendor
 
 .database
+
+# default heisenberg data
+.heisenberg/

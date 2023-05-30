@@ -1,7 +1,7 @@
 package core
 
 import (
-	"heisenberg/utils"
+	"github.com/quantanotes/heisenberg/utils"
 )
 
 type Cache struct {

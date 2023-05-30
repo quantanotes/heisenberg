@@ -2,14 +2,15 @@
 package hnsw
 
 //#cgo CFLAGS: -I./ -g -Wall
+//#cgo CXXFLAGS: -std=c++11
 //#include <stdlib.h>
 //#include "hnsw_wrapper.h"
 import "C"
 
 import (
 	"fmt"
-	"heisenberg/math"
-	"heisenberg/utils"
+	"github.com/quantanotes/heisenberg/math"
+	"github.com/quantanotes/heisenberg/utils"
 	"unsafe"
 )
 

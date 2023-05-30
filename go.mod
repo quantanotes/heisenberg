@@ -1,4 +1,4 @@
-module heisenberg
+module github.com/quantanotes/heisenberg
 
 go 1.20
 

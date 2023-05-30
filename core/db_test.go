@@ -2,7 +2,7 @@ package core
 
 import (
 	"fmt"
-	"heisenberg/utils"
+	"github.com/quantanotes/heisenberg/utils"
 	"os"
 	"path/filepath"
 	"testing"

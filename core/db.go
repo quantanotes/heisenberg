@@ -3,7 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
-	"heisenberg/utils"
+	"github.com/quantanotes/heisenberg/utils"
 	"path/filepath"
 
 	"go.etcd.io/bbolt"
