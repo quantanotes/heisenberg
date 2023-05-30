@@ -1,8 +1,8 @@
 package core
 
 import (
-	"heisenberg/hnsw"
-	"heisenberg/utils"
+	"github.com/quantanotes/heisenberg/hnsw"
+	"github.com/quantanotes/heisenberg/utils"
 )
 
 type indexConfig struct {

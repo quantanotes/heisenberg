@@ -8,8 +8,8 @@ import "C"
 
 import (
 	"fmt"
-	"heisenberg/math"
-	"heisenberg/utils"
+	"github.com/quantanotes/heisenberg/math"
+	"github.com/quantanotes/heisenberg/utils"
 	"unsafe"
 )
 

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"heisenberg/core"
-	"heisenberg/server"
+	"github.com/quantanotes/heisenberg/core"
+	"github.com/quantanotes/heisenberg/server"
 	"os"
 )
 
