@@ -9,9 +9,10 @@ import "C"
 
 import (
 	"fmt"
+	"unsafe"
+
 	"github.com/quantanotes/heisenberg/math"
 	"github.com/quantanotes/heisenberg/utils"
-	"unsafe"
 )
 
 type HNSWOptions struct {

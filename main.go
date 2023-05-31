@@ -1,9 +1,10 @@
 package main
 
 import (
+	"os"
+
 	"github.com/quantanotes/heisenberg/core"
 	"github.com/quantanotes/heisenberg/server"
-	"os"
 )
 
 func main() {

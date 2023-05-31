@@ -1,0 +1,5 @@
+package annoy
+
+func Hello() {
+
+}
