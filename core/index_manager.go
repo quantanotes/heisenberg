@@ -21,7 +21,7 @@ type IndexManager struct {
 
 func NewIndexManager(path string, max uint) *IndexManager {
 	return &IndexManager{
-		indices: orderedmap.New[string, *Index](max),
+		indices: orderedmap.New[string, *Index](int(max)),
 		max:     max,
 		path:    path,
 	}
