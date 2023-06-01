@@ -1,63 +1,44 @@
 package core
 
 import (
-	"github.com/quantanotes/heisenberg/hnsw"
-	"github.com/quantanotes/heisenberg/utils"
+	"fmt"
 )
 
-type indexConfig struct {
-	Name  string
-	Count uint
-	Dim   uint
-	Space uint
+type IndexerType int
+
+const (
+	HNSWIndexerType  IndexerType = 1
+	AnnoyIndexerType             = 2
+)
+
+type IndexConfig struct {
+	Name     string
+	FreeList []uint
+	Dim      uint
+	Space    uint
 }
 
-type Index struct {
-	config indexConfig
-	hnsw   *hnsw.HNSW
+type Index interface {
+	Close()
+	Save(string) error
+	Insert(uint, []float32) error
+	Delete(uint) error
+	Search([]float32, uint) ([]int, error)
+	Next() uint
+	GetConfig() IndexConfig
 }
 
-func NewIndex(conf indexConfig) *Index {
-	hnsw := hnsw.NewHNSW(utils.SpaceType(conf.Space), int(conf.Dim), 1000000, &hnsw.HNSWOptions{M: 50, Ef: 100}, 69420)
-	return &Index{conf, hnsw}
-}
-
-func LoadIndex(path string, conf indexConfig) (*Index, error) {
-	hnsw, err := hnsw.LoadHNSW(path, int(conf.Dim), utils.SpaceType(conf.Space))
-	if err != nil {
-		return nil, err
+func NewIndex(config IndexConfig, indexer IndexerType) (*Index, error) {
+	switch indexer {
+	case HNSWIndexerType:
+		return nil, nil
+	case AnnoyIndexerType:
+		return nil, nil
+	default:
+		return nil, fmt.Errorf("unknown indexer type")
 	}
-	return &Index{
-		conf,
-		hnsw,
-	}, nil
 }
 
-func (i *Index) Close() {
-	i.hnsw.Free()
-}
-
-func (i *Index) Save(path string) {
-	i.hnsw.Save(path)
-}
-
-func (i *Index) Insert(id uint, vec []float32) error {
-	if len(vec) != int(i.config.Dim) {
-		return utils.DimensionMismatch(len(vec), int(i.config.Dim))
-	}
-	return i.hnsw.Add(int(id), vec)
-}
-
-func (i *Index) Delete(id uint) error {
-	return i.hnsw.Delete(int(id))
-}
-
-func (i *Index) Search(query []float32, k int) ([]int, error) {
-	return i.hnsw.Search(query, k)
-}
-
-// Generates unique index keys
-func (i *Index) Next() uint {
-	i.config.Count++
-	return i.config.Count
+func LoadIndex(path string, config IndexConfig) (*Index, error) {
+	return nil, nil
 }

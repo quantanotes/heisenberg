@@ -3,8 +3,9 @@ package core
 import (
 	"errors"
 	"fmt"
-	"github.com/quantanotes/heisenberg/utils"
 	"path/filepath"
+
+	"github.com/quantanotes/heisenberg/utils"
 
 	"go.etcd.io/bbolt"
 )
@@ -44,7 +45,7 @@ func (db *DB) NewCollection(collection string, dim uint, space utils.SpaceType) 
 			return err
 		}
 		// Store index configuration in mapping bucket
-		conf := indexConfig{collection, 0, dim, uint(space)}
+		conf := IndexConfig{collection, make([]uint, 0), dim, uint(space)}
 		b, err := utils.ToBytes(conf)
 		if err != nil {
 			return err
@@ -193,7 +194,7 @@ func (db *DB) Delete(collection string, key string) error {
 	return db.kv.Update(tx)
 }
 
-func (db *DB) Search(collection string, query []float32, k int) ([]Entry, error) {
+func (db *DB) Search(collection string, query []float32, k uint) ([]Entry, error) {
 	var results []Entry
 	tx := func(tx *bbolt.Tx) error {
 		// Retrieve bucket, mapping and index of collection
@@ -239,7 +240,7 @@ func (db *DB) Search(collection string, query []float32, k int) ([]Entry, error)
 }
 
 // Retrieves bucket, mapping and index for a given collection.
-func (db *DB) getBucketMappingIndex(tx *bbolt.Tx, collection string) (*bbolt.Bucket, *bbolt.Bucket, *Index, error) {
+func (db *DB) getBucketMappingIndex(tx *bbolt.Tx, collection string) (*bbolt.Bucket, *bbolt.Bucket, Index, error) {
 	// Retrieve collection bucket
 	b := tx.Bucket([]byte(collectionPrefix + collection))
 	if b == nil {

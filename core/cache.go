@@ -8,15 +8,19 @@ type Cache struct {
 	name    string
 	kv      map[string]Value
 	mapping map[uint]string
-	index   *Index
+	index   Index
 }
 
 func NewCache(name string, dim uint, space utils.SpaceType) *Cache {
+	index, err := NewIndex(IndexConfig{Name: name, FreeList: make([]uint, 0), Dim: dim, Space: uint(space)}, HNSWIndexerType)
+	if err != nil {
+		return nil // TODO: handle this error properly
+	}
 	return &Cache{
 		name:    name,
 		kv:      make(map[string]Value),
 		mapping: make(map[uint]string),
-		index:   NewIndex(indexConfig{Name: name, Count: 0, Dim: dim, Space: uint(space)}),
+		index:   *index,
 	}
 }
 
@@ -50,7 +54,7 @@ func (c *Cache) Delete(key string) error {
 }
 
 func (c *Cache) Search(query []float32, k uint) ([]Entry, error) {
-	ids, err := c.index.Search(query, int(k))
+	ids, err := c.index.Search(query, k)
 	if err != nil {
 		return nil, err
 	}

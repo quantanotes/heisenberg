@@ -3,10 +3,11 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/quantanotes/heisenberg/core"
 	"github.com/quantanotes/heisenberg/log"
 	"github.com/quantanotes/heisenberg/utils"
-	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -145,7 +146,7 @@ func (a *api) handleSearch(c *fiber.Ctx) error {
 	b := &struct {
 		Collection string    `json:"collection"`
 		Query      []float32 `json:"query"`
-		K          int       `json:"k"`
+		K          uint      `json:"k"`
 	}{}
 	if err := c.BodyParser(&b); err != nil {
 		log.Error(err.Error(), nil)
