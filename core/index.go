@@ -28,6 +28,7 @@ type Index interface {
 	GetConfig() IndexConfig
 }
 
+
 func NewIndex(config IndexConfig, indexer IndexerType) (*Index, error) {
 	switch indexer {
 	case HNSWIndexerType:
