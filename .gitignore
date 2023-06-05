@@ -22,3 +22,11 @@ go.work
 
 # default heisenberg data
 .heisenberg/
+
+.tmp
+
+__pycache__
+
+/clients/python/dist/*
+
+/clients/python/src/heisenbergpy.egg-info/*

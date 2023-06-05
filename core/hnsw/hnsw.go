@@ -28,10 +28,12 @@ type HNSW struct {
 }
 
 func New(space common.SpaceType, config common.IndexConfig, opts HNSWOptions) *HNSW {
-	return &HNSW{
+	h := &HNSW{
 		index:     C.initHNSW(C.int(config.Dim), C.ulong(opts.Max), C.int(opts.M), C.int(opts.Ef), C.int(42069), C.int(config.Space)),
+		config:    config,
 		normalise: common.SpaceType(config.Space) == common.Cosine,
 	}
+	return h
 }
 
 func Load(path string, config common.IndexConfig) (*HNSW, error) {
@@ -40,11 +42,12 @@ func Load(path string, config common.IndexConfig) (*HNSW, error) {
 		return nil, fmt.Errorf("hnsw load failed")
 	}
 	normalise := common.SpaceType(config.Space) == common.Cosine
-	return &HNSW{
+	h := &HNSW{
 		index,
 		config,
 		normalise,
-	}, nil
+	}
+	return h, nil
 }
 
 func (h *HNSW) Close() {
@@ -60,6 +63,9 @@ func (h *HNSW) Save(path string) error {
 }
 
 func (h *HNSW) Insert(id uint, vec []float32) error {
+	if len(vec) != int(h.config.Dim) {
+		return common.DimensionMismatch(len(vec), int(h.config.Dim))
+	}
 	if h.normalise {
 		vec = math.Normalise(vec)
 	}

@@ -33,7 +33,6 @@ func NewIndex(indexer IndexerType, name string, dim uint, space common.SpaceType
 		Space:    int(space),
 		Count:    0,
 	}
-
 	switch indexer {
 	case HNSWIndexerType:
 		return hnsw.New(space, config, hnsw.HNSWOptions{M: 50, Ef: 100, Max: 1000000}), nil

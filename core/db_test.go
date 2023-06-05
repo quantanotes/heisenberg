@@ -9,7 +9,7 @@ import (
 	"github.com/quantanotes/heisenberg/common"
 )
 
-func TestHeisenberg(t *testing.T) {
+func TestDB(t *testing.T) {
 	wd, _ := os.Getwd()
 	path := filepath.Join(wd, "/.tmp")
 	db := NewDB(path)
@@ -18,7 +18,7 @@ func TestHeisenberg(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	err = db.Put("c", "k", []float32{1, 2, 3}, map[string]interface{}{"msg": "bruh"})
+	err = db.Put("c", "k", []float32{1, 2, 3}, map[string]any{"msg": "bruh"})
 	if err != nil {
 		panic(err)
 	}

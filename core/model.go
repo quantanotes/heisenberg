@@ -12,9 +12,9 @@ type Entry struct {
 }
 
 type Value struct {
-	Index  uint                   `json:"index"`
-	Vector []float32              `json:"vector"`
-	Meta   map[string]interface{} `json:"meta"`
+	Index  uint           `json:"index"`
+	Vector []float32      `json:"vector"`
+	Meta   map[string]any `json:"meta"`
 }
 
 func (v *Value) Serialise() ([]byte, error) {

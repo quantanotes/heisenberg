@@ -30,7 +30,7 @@ func NewIndexManager(path string, max uint) *IndexManager {
 
 func (im *IndexManager) New(name string, indexer IndexerType, dim uint, space common.SpaceType) {
 	idx, err := NewIndex(indexer, name, dim, space)
-	if err != nil {
+	if idx == nil || err != nil {
 		return // TODO: handle error
 	}
 	path := im.GetPath(name)
@@ -48,7 +48,6 @@ func (im *IndexManager) Close() {
 func (im *IndexManager) Get(name string, kv *bbolt.DB) (Index, error) {
 	idx, ok := im.indices.Get(name)
 	if !ok {
-		fmt.Printf("loading %s", name)
 		return im.load(name, kv)
 	}
 	im.indices.MoveToBack(name)
@@ -89,7 +88,7 @@ func (im *IndexManager) load(name string, kv *bbolt.DB) (Index, error) {
 }
 
 func (im *IndexManager) push(idx Index) {
-	im.indices.Store(idx.GetConfig().Name, idx)
+	im.indices.Set(idx.GetConfig().Name, idx)
 	for im.indices.Len() > int(im.max) {
 		pair := im.indices.Oldest()
 		pair.Value.Save(im.GetPath(idx.GetConfig().Name))

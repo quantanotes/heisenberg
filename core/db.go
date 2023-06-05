@@ -111,7 +111,7 @@ func (db *DB) Get(collection string, key string) (Entry, error) {
 	return Entry{collection, key, val}, nil
 }
 
-func (db *DB) Put(collection string, key string, vec []float32, meta map[string]interface{}) error {
+func (db *DB) Put(collection string, key string, vec []float32, meta map[string]any) error {
 	kb := []byte(key)
 	tx := func(tx *bbolt.Tx) error {
 		// Retrieve bucket, mapping and index of collection
