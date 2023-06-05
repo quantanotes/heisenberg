@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/quantanotes/heisenberg/annoy/annoyindex"
+	"github.com/quantanotes/heisenberg/core/annoy/annoyindex"
 )
 
 func TestAnnoyIndex(t *testing.T) {

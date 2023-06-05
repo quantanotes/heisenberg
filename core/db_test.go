@@ -2,10 +2,11 @@ package core
 
 import (
 	"fmt"
-	"github.com/quantanotes/heisenberg/utils"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/quantanotes/heisenberg/common"
 )
 
 func TestHeisenberg(t *testing.T) {
@@ -13,7 +14,7 @@ func TestHeisenberg(t *testing.T) {
 	path := filepath.Join(wd, "/.tmp")
 	db := NewDB(path)
 	defer db.Close()
-	err := db.NewCollection("c", 3, utils.Cosine)
+	err := db.NewCollection("c", 3, common.Cosine)
 	if err != nil {
 		panic(err)
 	}

@@ -2,37 +2,41 @@ package core
 
 import (
 	"fmt"
+
+	"github.com/quantanotes/heisenberg/common"
+	"github.com/quantanotes/heisenberg/core/hnsw"
 )
 
 type IndexerType int
 
 const (
 	HNSWIndexerType  IndexerType = 1
-	AnnoyIndexerType             = 2
+	AnnoyIndexerType IndexerType = 2
 )
-
-type IndexConfig struct {
-	Name     string
-	FreeList []uint
-	Dim      uint
-	Space    uint
-}
 
 type Index interface {
 	Close()
 	Save(string) error
 	Insert(uint, []float32) error
 	Delete(uint) error
-	Search([]float32, uint) ([]int, error)
+	Search([]float32, uint) ([]uint, error)
 	Next() uint
-	GetConfig() IndexConfig
+	GetConfig() common.IndexConfig
 }
 
+func NewIndex(indexer IndexerType, name string, dim uint, space common.SpaceType) (Index, error) {
+	config := common.IndexConfig{
+		Name:     name,
+		Indexer:  int(indexer),
+		FreeList: make([]uint, 0),
+		Dim:      dim,
+		Space:    int(space),
+		Count:    0,
+	}
 
-func NewIndex(config IndexConfig, indexer IndexerType) (*Index, error) {
 	switch indexer {
 	case HNSWIndexerType:
-		return nil, nil
+		return hnsw.New(space, config, hnsw.HNSWOptions{M: 50, Ef: 100, Max: 1000000}), nil
 	case AnnoyIndexerType:
 		return nil, nil
 	default:
@@ -40,6 +44,13 @@ func NewIndex(config IndexConfig, indexer IndexerType) (*Index, error) {
 	}
 }
 
-func LoadIndex(path string, config IndexConfig) (*Index, error) {
-	return nil, nil
+func LoadIndex(path string, config common.IndexConfig) (Index, error) {
+	switch IndexerType(config.Indexer) {
+	case HNSWIndexerType:
+		return hnsw.Load(path, config)
+	case AnnoyIndexerType:
+		return nil, nil
+	default:
+		return nil, fmt.Errorf("unknown indexer type")
+	}
 }

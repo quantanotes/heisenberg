@@ -2,8 +2,8 @@ import logging
 import requests
 
 class Heisenberg:
-    def __init__(self, base_url, api_key):
-        self.base_url = base_url
+    def __init__(self, address, api_key):
+        self.base_url = 'http://' + address + ':8080'
         self.api_key = api_key
     
     def _request(self, method, endpoint, data=None):

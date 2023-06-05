@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/quantanotes/heisenberg/utils"
+	"github.com/quantanotes/heisenberg/common"
 
 	"go.etcd.io/bbolt"
 )
 
-const collectionPrefix = "__" // All collection names are prefixed to distinguish from mapping buckets.
-const configKey = "config"
+const (
+	collectionPrefix = "__" // All collection names are prefixed to distinguish from mapping buckets.
+	configKey        = "config"
+)
 
 type DB struct {
 	kv *bbolt.DB     // key value store to hold meta data
@@ -32,7 +34,7 @@ func (db *DB) Close() {
 	db.kv.Close()
 }
 
-func (db *DB) NewCollection(collection string, dim uint, space utils.SpaceType) error {
+func (db *DB) NewCollection(collection string, dim uint, space common.SpaceType) error {
 	tx := func(tx *bbolt.Tx) error {
 		// Create collection bucket
 		_, err := tx.CreateBucketIfNotExists([]byte(collectionPrefix + collection))
@@ -45,14 +47,14 @@ func (db *DB) NewCollection(collection string, dim uint, space utils.SpaceType) 
 			return err
 		}
 		// Store index configuration in mapping bucket
-		conf := IndexConfig{collection, make([]uint, 0), dim, uint(space)}
-		b, err := utils.ToBytes(conf)
+		conf := common.IndexConfig{Name: collection, Indexer: int(HNSWIndexerType), FreeList: make([]uint, 0), Dim: dim, Space: int(space), Count: 0}
+		b, err := common.ToBytes(conf)
 		if err != nil {
 			return err
 		}
 		// Create new index
 		m.Put([]byte(configKey), b)
-		db.im.New(conf)
+		db.im.New(collection, HNSWIndexerType, dim, space)
 		return nil
 	}
 	return db.kv.Update(tx)
@@ -88,12 +90,12 @@ func (db *DB) Get(collection string, key string) (Entry, error) {
 		// Retrieve bucket
 		b := tx.Bucket(cb)
 		if b == nil {
-			return utils.InvalidCollection(collection)
+			return common.InvalidCollection(collection)
 		}
 		// Retrieve value at key
 		data = b.Get(kb)
 		if data == nil {
-			return utils.InvalidKey(key, collection)
+			return common.InvalidKey(key, collection)
 		}
 		return nil
 	}
@@ -139,7 +141,7 @@ func (db *DB) Put(collection string, key string, vec []float32, meta map[string]
 			val.Vector = vec
 			val.Meta = meta
 			// Store index-key mapping in mapping bucket
-			m.Put(utils.IntToBytes(int(val.Index)), kb)
+			m.Put(common.IntToBytes(int(val.Index)), kb)
 		}
 		data, err := val.Serialise()
 		if err != nil {
@@ -170,7 +172,7 @@ func (db *DB) Delete(collection string, key string) error {
 		}
 		data := b.Get(kb) // Previous value	at key
 		if data == nil {
-			return utils.InvalidKey(key, collection)
+			return common.InvalidKey(key, collection)
 		}
 		val, err := DeserialiseValue(data)
 		if err != nil {
@@ -181,7 +183,7 @@ func (db *DB) Delete(collection string, key string) error {
 			return err
 		}
 		// Delete key-index mapping from mapping bucket
-		if err = m.Delete(utils.IntToBytes(int(val.Index))); err != nil {
+		if err = m.Delete(common.IntToBytes(int(val.Index))); err != nil {
 			return err
 		}
 		// Delete vector from index
@@ -211,7 +213,7 @@ func (db *DB) Search(collection string, query []float32, k uint) ([]Entry, error
 		results = make([]Entry, 0)
 		for _, id := range ids {
 			// Retrieve mapping to value
-			key := m.Get(utils.IntToBytes(int(id)))
+			key := m.Get(common.IntToBytes(int(id)))
 			if key == nil {
 				continue
 			}
@@ -244,7 +246,7 @@ func (db *DB) getBucketMappingIndex(tx *bbolt.Tx, collection string) (*bbolt.Buc
 	// Retrieve collection bucket
 	b := tx.Bucket([]byte(collectionPrefix + collection))
 	if b == nil {
-		return nil, nil, nil, utils.InvalidCollection(collection)
+		return nil, nil, nil, common.InvalidCollection(collection)
 	}
 	// Retrieve mapping from keys to index for collection
 	m := tx.Bucket([]byte(collection))

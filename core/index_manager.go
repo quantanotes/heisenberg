@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/quantanotes/heisenberg/utils"
+	"github.com/quantanotes/heisenberg/common"
 
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 	"go.etcd.io/bbolt"
@@ -28,14 +28,14 @@ func NewIndexManager(path string, max uint) *IndexManager {
 	}
 }
 
-func (im *IndexManager) New(conf IndexConfig) {
-	idx, err := NewIndex(conf, HNSWIndexerType)
+func (im *IndexManager) New(name string, indexer IndexerType, dim uint, space common.SpaceType) {
+	idx, err := NewIndex(indexer, name, dim, space)
 	if err != nil {
 		return // TODO: handle error
 	}
-	path := im.GetPath(conf.Name)
-	(*idx).Save(path)
-	im.push(*idx)
+	path := im.GetPath(name)
+	(idx).Save(path)
+	im.push(idx)
 }
 
 func (im *IndexManager) Close() {
@@ -45,11 +45,11 @@ func (im *IndexManager) Close() {
 	}
 }
 
-func (im *IndexManager) Get(name string, db *bbolt.DB) (Index, error) {
+func (im *IndexManager) Get(name string, kv *bbolt.DB) (Index, error) {
 	idx, ok := im.indices.Get(name)
 	if !ok {
 		fmt.Printf("loading %s", name)
-		return im.load(name, db)
+		return im.load(name, kv)
 	}
 	im.indices.MoveToBack(name)
 	return idx, nil
@@ -59,18 +59,18 @@ func (im *IndexManager) Delete(name string) error {
 	return os.Remove(im.GetPath(name))
 }
 
-func (im *IndexManager) load(name string, db *bbolt.DB) (Index, error) {
+func (im *IndexManager) load(name string, kv *bbolt.DB) (Index, error) {
 	// Retrieve configuration from key value store
-	conf := &IndexConfig{}
-	err := db.View(func(tx *bbolt.Tx) error {
+	conf := &common.IndexConfig{}
+	err := kv.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(name))
 		data := b.Get([]byte(configKey))
 		if data == nil {
-			return utils.InvalidIndexConfig(name)
+			return common.InvalidIndexConfig(name)
 		}
-		err := utils.FromBytes(data, conf)
+		err := common.FromBytes(data, conf)
 		if err != nil {
-			return utils.InvalidIndexConfig(name, err)
+			return common.InvalidIndexConfig(name, err)
 		}
 		return nil
 	})
@@ -84,8 +84,8 @@ func (im *IndexManager) load(name string, db *bbolt.DB) (Index, error) {
 		return nil, err
 	}
 	// Push index to queue
-	im.push(*idx)
-	return *idx, nil
+	im.push(idx)
+	return idx, nil
 }
 
 func (im *IndexManager) push(idx Index) {

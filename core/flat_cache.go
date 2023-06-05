@@ -1,16 +1,16 @@
 package core
 
 import (
-	"github.com/quantanotes/heisenberg/utils"
+	"github.com/quantanotes/heisenberg/common"
 )
 
 type flatCache struct {
 	name  string
 	kv    map[string]Value
-	space utils.SpaceType
+	space common.SpaceType
 }
 
-func NewFlatCache(name string, dim uint, space utils.SpaceType) *flatCache {
+func NewFlatCache(name string, dim uint, space common.SpaceType) *flatCache {
 	return &flatCache{
 		name:  name,
 		kv:    make(map[string]Value),
@@ -22,7 +22,7 @@ func (c *flatCache) Get(key string) (Entry, error) {
 	if val, ok := c.kv[key]; ok {
 		return Entry{Collection: c.name, Key: key, Value: val}, nil
 	}
-	return Entry{}, utils.InvalidKey(c.name, key)
+	return Entry{}, common.InvalidKey(c.name, key)
 }
 
 func (c *flatCache) Put(key string, index uint, vector []float32, meta map[string]any) error {
@@ -33,7 +33,7 @@ func (c *flatCache) Put(key string, index uint, vector []float32, meta map[strin
 func (c *flatCache) Delete(key string) error {
 	_, ok := c.kv[key]
 	if !ok {
-		return utils.InvalidKey(key, c.name)
+		return common.InvalidKey(key, c.name)
 	}
 	delete(c.kv, key)
 	return nil

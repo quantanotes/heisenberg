@@ -12,7 +12,7 @@ package core
 // 	Space uint
 // }
 
-// type Indexa struct {
+// type Index struct {
 // 	config indexConfig
 // 	hnsw   *hnsw.HNSW
 // }

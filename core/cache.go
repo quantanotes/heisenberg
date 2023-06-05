@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/quantanotes/heisenberg/utils"
+	"github.com/quantanotes/heisenberg/common"
 )
 
 type Cache struct {
@@ -11,8 +11,8 @@ type Cache struct {
 	index   Index
 }
 
-func NewCache(name string, dim uint, space utils.SpaceType) *Cache {
-	index, err := NewIndex(IndexConfig{Name: name, FreeList: make([]uint, 0), Dim: dim, Space: uint(space)}, HNSWIndexerType)
+func NewCache(name string, dim uint, space common.SpaceType) *Cache {
+	index, err := NewIndex(HNSWIndexerType, name, dim, space)
 	if err != nil {
 		return nil // TODO: handle this error properly
 	}
@@ -20,7 +20,7 @@ func NewCache(name string, dim uint, space utils.SpaceType) *Cache {
 		name:    name,
 		kv:      make(map[string]Value),
 		mapping: make(map[uint]string),
-		index:   *index,
+		index:   index,
 	}
 }
 
@@ -28,7 +28,7 @@ func (c *Cache) Get(key string) (Entry, error) {
 	if val, ok := c.kv[key]; ok {
 		return Entry{Collection: c.name, Key: key, Value: val}, nil
 	}
-	return Entry{}, utils.InvalidKey(c.name, key)
+	return Entry{}, common.InvalidKey(c.name, key)
 }
 
 func (c *Cache) Put(key string, vector []float32, meta map[string]any) error {
@@ -44,7 +44,7 @@ func (c *Cache) Put(key string, vector []float32, meta map[string]any) error {
 func (c *Cache) Delete(key string) error {
 	val, ok := c.kv[key]
 	if !ok {
-		return utils.InvalidKey(key, c.name)
+		return common.InvalidKey(key, c.name)
 	}
 	mapping := val.Index
 	c.index.Delete(mapping)

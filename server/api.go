@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/quantanotes/heisenberg/common"
 	"github.com/quantanotes/heisenberg/core"
 	"github.com/quantanotes/heisenberg/log"
-	"github.com/quantanotes/heisenberg/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -59,7 +59,7 @@ func (a *api) handleNewCollection(c *fiber.Ctx) error {
 		return c.Status(500).SendString(err.Error())
 	}
 	log.Trace(fmt.Sprintf("creating collection %s", b.Name), nil)
-	space := utils.SpaceFromString(b.Space)
+	space := common.SpaceFromString(b.Space)
 	err := a.db.NewCollection(b.Name, b.Dim, space)
 	if err != nil {
 		log.Error(err.Error(), nil)
