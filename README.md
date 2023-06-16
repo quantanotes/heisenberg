@@ -25,13 +25,13 @@ We can represent the following words as such:
 ```go
 func getWords() map[string][]float32 {
     words := make(map[string][]float32)
-    m["man"] := [0, 0.5]
-    m["woman"] := [1, 0.5]
-    m["person"] := [0.5, 0.5]
-    m["king"] := [1, 0]
-    m["queen"] := [0, 1]
-    m["servant"] := [0.5, 0]
-    m["maid"] := [1, 0]
+    m["man"] = [0, 0.5]
+    m["woman"] = [1, 0.5]
+    m["person"] = [0.5, 0.5]
+    m["king"] = [1, 0]
+    m["queen"] = [0, 1]
+    m["servant"] = [0.5, 0]
+    m["maid"] = [1, 0]
 } 
 ```
 
