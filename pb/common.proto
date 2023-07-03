@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "/pb";
+
+import "google/protobuf/struct.proto";
+
+message Nil {}
+
+message Key {
+  string bucket = 1;
+  string key = 2;
+}
+
+message Value {
+  optional uint64 index = 1;
+  repeated float vector = 2 [ packed = true ];
+  google.protobuf.Struct meta = 3;
+}
+
+message Entry {
+  optional uint64 index = 1;
+  string bucket = 2;
+  string key = 3;
+  repeated float vector = 4 [ packed = true ];
+  google.protobuf.Struct meta = 5;
+}

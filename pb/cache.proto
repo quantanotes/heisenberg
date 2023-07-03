@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "/pb";
+
+import "common.proto";
+
+service CacheService {
+  rpc Get(Key) returns (Value) {}
+  rpc Put(Entry) returns (Nil) {}
+  rpc Delete(Key) returns (Nil) {}
+}

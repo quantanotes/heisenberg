@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "/pb";
+
+import "google/protobuf/struct.proto";
+
+service Service {
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc Put(PutRequest) returns (PutResponse) {}
+}
+
+message GetRequest {
+  string collection = 1;
+  string key = 2;
+}
+
+message GetResponse {
+  string collection = 1;
+  string key = 2;
+  repeated float vector = 3 [ packed = true ];
+  google.protobuf.Value meta = 4;
+}
+
+message PutRequest {}
+
+message PutResponse {}
