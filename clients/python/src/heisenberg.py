@@ -26,7 +26,7 @@ class Heisenberg:
             return None
         return response.json()
     
-    def new_collection(self, name, dim, space):
+    def new_bucket(self, name, dim, space):
         data = {
             'name': name,
             'dim': dim,
@@ -34,7 +34,7 @@ class Heisenberg:
         }
         self._request('POST', 'newcollection', data)
     
-    def delete_collection(self, name):
+    def delete_bucket(self, name):
         data = {
             'name': name
         }
