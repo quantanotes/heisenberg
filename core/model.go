@@ -6,9 +6,9 @@ import (
 )
 
 type Entry struct {
-	Collection string `json:"collection"`
-	Key        string `json:"key"`
-	Value      Value  `json:"value"`
+	Bucket string `json:"bucket"`
+	Key    string `json:"key"`
+	Value  Value  `json:"value"`
 }
 
 type Value struct {

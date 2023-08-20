@@ -14,7 +14,7 @@ func TestDB(t *testing.T) {
 	path := filepath.Join(wd, "/.tmp")
 	db := NewDB(path)
 	defer db.Close()
-	err := db.NewCollection("c", 3, common.Cosine)
+	err := db.NewBucket("c", 3, common.Cosine)
 	if err != nil {
 		panic(err)
 	}

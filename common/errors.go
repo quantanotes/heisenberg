@@ -2,35 +2,35 @@ package common
 
 import "fmt"
 
-func InvalidCollection(collection string, args ...interface{}) error {
+func InvalidBucket(bucket string, args ...interface{}) error {
 	return fmt.Errorf(
-		"collection %s does not exist, trace: %v",
-		collection,
+		"bucket %s does not exist, trace: %v",
+		bucket,
 		args,
 	)
 }
 
-func InvalidKey(key string, collection string, args ...interface{}) error {
+func InvalidKey(key string, bucket string, args ...interface{}) error {
 	return fmt.Errorf(
-		"key %s does not exist in collection %s, trace: %v",
+		"key %s does not exist in bucket %s, trace: %v",
 		key,
-		collection,
+		bucket,
 		args,
 	)
 }
 
-func InvalidIndexConfig(collection string, args ...interface{}) error {
+func InvalidIndexConfig(bucket string, args ...interface{}) error {
 	return fmt.Errorf(
-		"invalid index config for collection %s, trace: %v",
-		collection,
+		"invalid index config for bucket %s, trace: %v",
+		bucket,
 		args,
 	)
 }
 
-func NoMapping(collection string, args ...interface{}) error {
+func NoMapping(bucket string, args ...interface{}) error {
 	return fmt.Errorf(
-		"mapping for collection %s does not exist, trace: %v",
-		collection,
+		"mapping for bucket %s does not exist, trace: %v",
+		bucket,
 		args,
 	)
 }

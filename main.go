@@ -20,5 +20,5 @@ func main() {
 	}
 	db := core.NewDB(path)
 	defer db.Close()
-	server.RunAPI(db, ":8080")
+	server.RunAPI(db, ":5000")
 }

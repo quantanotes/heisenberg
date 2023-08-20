@@ -2,8 +2,8 @@ import logging
 import requests
 
 class Heisenberg:
-    def __init__(self, host, port, api_key):
-        self.base_url = 'http://' + host + port
+    def __init__(self, address, api_key):
+        self.base_url = 'http://' + address + ':8080'
         self.api_key = api_key
     
     def _request(self, method, endpoint, data=None):
@@ -32,40 +32,40 @@ class Heisenberg:
             'dim': dim,
             'space': space
         }
-        self._request('POST', 'newbucket', data)
+        self._request('POST', 'newcollection', data)
     
     def delete_bucket(self, name):
         data = {
             'name': name
         }
-        self._request('POST', 'deletebucket', data)
+        self._request('POST', 'deletecollection', data)
     
-    def get(self, bucket, key):
+    def get(self, collection, key):
         data = {
-            'bucket': bucket,
+            'collection': collection,
             'key': key
         }
         return self._request('POST', 'get', data)
 
-    def put(self, bucket, key, vector, meta=None):
+    def put(self, collection, key, vector, meta=None):
         data = {
-            'bucket': bucket,
+            'collection': collection,
             'key': key,
             'vector': vector,
             'meta': meta or {}
         }
         self._request('POST', 'put', data)
     
-    def delete(self, bucket, key):
+    def delete(self, collection, key):
         data = {
-            'bucket': bucket,
+            'collection': collection,
             'key': key
         }
         self._request('POST', 'delete', data)
     
-    def search(self, bucket, query, k):
+    def search(self, collection, query, k):
         data = {
-            'bucket': bucket,
+            'collection': collection,
             'query': query,
             'k': k
         }

@@ -20,7 +20,7 @@ func NewFlatCache(name string, dim uint, space common.SpaceType) *flatCache {
 
 func (c *flatCache) Get(key string) (Entry, error) {
 	if val, ok := c.kv[key]; ok {
-		return Entry{Collection: c.name, Key: key, Value: val}, nil
+		return Entry{Bucket: c.name, Key: key, Value: val}, nil
 	}
 	return Entry{}, common.InvalidKey(c.name, key)
 }

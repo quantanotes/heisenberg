@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	collectionPrefix = "__" // All collection names are prefixed to distinguish from mapping buckets.
-	configKey        = "config"
+	bucketPrefix = "__" // All bucket names are prefixed to distinguish from mapping buckets.
+	configKey    = "config"
 )
 
 type DB struct {
@@ -34,46 +34,46 @@ func (db *DB) Close() {
 	db.kv.Close()
 }
 
-func (db *DB) NewCollection(collection string, dim uint, space common.SpaceType) error {
+func (db *DB) NewBucket(bucket string, dim uint, space common.SpaceType) error {
 	tx := func(tx *bbolt.Tx) error {
-		// Create collection bucket
-		_, err := tx.CreateBucketIfNotExists([]byte(collectionPrefix + collection))
+		// Create bucket bucket
+		_, err := tx.CreateBucketIfNotExists([]byte(bucketPrefix + bucket))
 		if err != nil {
 			return err
 		}
 		// Create mapping bucket
-		m, err := tx.CreateBucketIfNotExists([]byte(collection))
+		m, err := tx.CreateBucketIfNotExists([]byte(bucket))
 		if err != nil {
 			return err
 		}
 		// Store index configuration in mapping bucket
-		conf := common.IndexConfig{Name: collection, Indexer: int(HNSWIndexerType), FreeList: make([]uint, 0), Dim: dim, Space: int(space), Count: 0}
+		conf := common.IndexConfig{Name: bucket, Indexer: int(HNSWIndexerType), FreeList: make([]uint, 0), Dim: dim, Space: int(space), Count: 0}
 		b, err := common.ToBytes(conf)
 		if err != nil {
 			return err
 		}
 		// Create new index
 		m.Put([]byte(configKey), b)
-		db.im.New(collection, HNSWIndexerType, dim, space)
+		db.im.New(bucket, HNSWIndexerType, dim, space)
 		return nil
 	}
 	return db.kv.Update(tx)
 }
 
-func (db *DB) DeleteCollection(collection string) error {
+func (db *DB) DeleteBucket(bucket string) error {
 	tx := func(tx *bbolt.Tx) error {
-		// Delete collection bucket
-		err := tx.DeleteBucket([]byte(collectionPrefix + collection))
+		// Delete bucket bucket
+		err := tx.DeleteBucket([]byte(bucketPrefix + bucket))
 		if err != nil {
 			return err
 		}
 		// Delete mapping bucket
-		err = tx.DeleteBucket([]byte(collection))
+		err = tx.DeleteBucket([]byte(bucket))
 		if err != nil {
 			return err
 		}
 		// Delete index
-		err = db.im.Delete(collection)
+		err = db.im.Delete(bucket)
 		if err != nil {
 			return err
 		}
@@ -82,20 +82,20 @@ func (db *DB) DeleteCollection(collection string) error {
 	return db.kv.Update(tx)
 }
 
-func (db *DB) Get(collection string, key string) (Entry, error) {
-	cb := []byte(collectionPrefix + collection)
+func (db *DB) Get(bucket string, key string) (Entry, error) {
+	cb := []byte(bucketPrefix + bucket)
 	kb := []byte(key)
 	var data []byte
 	tx := func(tx *bbolt.Tx) error {
 		// Retrieve bucket
 		b := tx.Bucket(cb)
 		if b == nil {
-			return common.InvalidCollection(collection)
+			return common.InvalidBucket(bucket)
 		}
 		// Retrieve value at key
 		data = b.Get(kb)
 		if data == nil {
-			return common.InvalidKey(key, collection)
+			return common.InvalidKey(key, bucket)
 		}
 		return nil
 	}
@@ -108,14 +108,14 @@ func (db *DB) Get(collection string, key string) (Entry, error) {
 	if err != nil {
 		return Entry{}, err
 	}
-	return Entry{collection, key, val}, nil
+	return Entry{bucket, key, val}, nil
 }
 
-func (db *DB) Put(collection string, key string, vec []float32, meta map[string]any) error {
+func (db *DB) Put(bucket string, key string, vec []float32, meta map[string]any) error {
 	kb := []byte(key)
 	tx := func(tx *bbolt.Tx) error {
-		// Retrieve bucket, mapping and index of collection
-		b, m, i, err := db.getBucketMappingIndex(tx, collection)
+		// Retrieve bucket, mapping and index of bucket
+		b, m, i, err := db.getBucketMappingIndex(tx, bucket)
 		if err != nil {
 			return err
 		}
@@ -156,23 +156,23 @@ func (db *DB) Put(collection string, key string, vec []float32, meta map[string]
 				return err
 			}
 		}
-		go i.Save(db.im.GetPath(collection))
+		go i.Save(db.im.GetPath(bucket))
 		return nil
 	}
 	return db.kv.Update(tx)
 }
 
-func (db *DB) Delete(collection string, key string) error {
+func (db *DB) Delete(bucket string, key string) error {
 	kb := []byte(key)
 	tx := func(tx *bbolt.Tx) error {
-		// Retrieve bucket, mapping and index of collection
-		b, m, i, err := db.getBucketMappingIndex(tx, collection)
+		// Retrieve bucket, mapping and index of bucket
+		b, m, i, err := db.getBucketMappingIndex(tx, bucket)
 		if err != nil {
 			return err
 		}
 		data := b.Get(kb) // Previous value	at key
 		if data == nil {
-			return common.InvalidKey(key, collection)
+			return common.InvalidKey(key, bucket)
 		}
 		val, err := DeserialiseValue(data)
 		if err != nil {
@@ -190,17 +190,17 @@ func (db *DB) Delete(collection string, key string) error {
 		if err := i.Delete(val.Index); err != nil {
 			return err
 		}
-		go i.Save(db.im.GetPath(collection))
+		go i.Save(db.im.GetPath(bucket))
 		return nil
 	}
 	return db.kv.Update(tx)
 }
 
-func (db *DB) Search(collection string, query []float32, k uint) ([]Entry, error) {
+func (db *DB) Search(bucket string, query []float32, k uint) ([]Entry, error) {
 	var results []Entry
 	tx := func(tx *bbolt.Tx) error {
-		// Retrieve bucket, mapping and index of collection
-		b, m, i, err := db.getBucketMappingIndex(tx, collection)
+		// Retrieve bucket, mapping and index of bucket
+		b, m, i, err := db.getBucketMappingIndex(tx, bucket)
 		if err != nil {
 			return err
 		}
@@ -227,7 +227,7 @@ func (db *DB) Search(collection string, query []float32, k uint) ([]Entry, error
 				continue
 			}
 			results = append(results, Entry{
-				collection,
+				bucket,
 				string(key),
 				val,
 			})
@@ -241,22 +241,22 @@ func (db *DB) Search(collection string, query []float32, k uint) ([]Entry, error
 	return results, nil
 }
 
-// Retrieves bucket, mapping and index for a given collection.
-func (db *DB) getBucketMappingIndex(tx *bbolt.Tx, collection string) (*bbolt.Bucket, *bbolt.Bucket, Index, error) {
-	// Retrieve collection bucket
-	b := tx.Bucket([]byte(collectionPrefix + collection))
+// Retrieves bucket, mapping and index for a given bucket.
+func (db *DB) getBucketMappingIndex(tx *bbolt.Tx, bucket string) (*bbolt.Bucket, *bbolt.Bucket, Index, error) {
+	// Retrieve bucket bucket
+	b := tx.Bucket([]byte(bucketPrefix + bucket))
 	if b == nil {
-		return nil, nil, nil, common.InvalidCollection(collection)
+		return nil, nil, nil, common.InvalidBucket(bucket)
 	}
-	// Retrieve mapping from keys to index for collection
-	m := tx.Bucket([]byte(collection))
+	// Retrieve mapping from keys to index for bucket
+	m := tx.Bucket([]byte(bucket))
 	if m == nil {
-		return nil, nil, nil, fmt.Errorf("key-index mapping for collection %s does not exist", collection)
+		return nil, nil, nil, fmt.Errorf("key-index mapping for bucket %s does not exist", bucket)
 	}
 	// Retrieve index
-	idx, err := db.im.Get(collection, db.kv)
+	idx, err := db.im.Get(bucket, db.kv)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("index for collection %s does not exist, trace: %s", collection, err.Error())
+		return nil, nil, nil, fmt.Errorf("index for bucket %s does not exist, trace: %s", bucket, err.Error())
 	}
 	return b, m, idx, nil
 }
