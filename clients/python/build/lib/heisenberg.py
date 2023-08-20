@@ -2,8 +2,8 @@ import logging
 import requests
 
 class Heisenberg:
-    def __init__(self, base_url, api_key):
-        self.base_url = base_url
+    def __init__(self, address, api_key):
+        self.base_url = 'http://' + address + ':8080'
         self.api_key = api_key
     
     def _request(self, method, endpoint, data=None):
@@ -26,7 +26,7 @@ class Heisenberg:
             return None
         return response.json()
     
-    def new_collection(self, name, dim, space):
+    def new_bucket(self, name, dim, space):
         data = {
             'name': name,
             'dim': dim,
@@ -34,7 +34,7 @@ class Heisenberg:
         }
         self._request('POST', 'newcollection', data)
     
-    def delete_collection(self, name):
+    def delete_bucket(self, name):
         data = {
             'name': name
         }

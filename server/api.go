@@ -3,10 +3,11 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"heisenberg/core"
-	"heisenberg/log"
-	"heisenberg/utils"
 	"os"
+
+	"github.com/quantanotes/heisenberg/common"
+	"github.com/quantanotes/heisenberg/core"
+	"github.com/quantanotes/heisenberg/log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -17,19 +18,19 @@ var apiKey = os.Getenv("HEISENBERG_API_KEY")
 var masterKey = os.Getenv("HEISENBERG_MASTER_KEY")
 
 type api struct {
-	h *core.Heisenberg
+	db *core.DB
 }
 
-func RunAPI(h *core.Heisenberg, host string) {
-	api := api{h}
+func RunAPI(db *core.DB, host string) {
+	api := api{db}
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(keyauth.New(keyauth.Config{
 		KeyLookup: "header:X-API-Key",
 		Validator: validateAPIKey,
 	}))
-	app.Post("/newcollection", api.handleNewCollection)
-	app.Post("/deletecollection", api.handleDeleteCollection)
+	app.Post("/newbucket", api.handleNewBucket)
+	app.Post("/deletebucket", api.handleDeleteBucket)
 	app.Post("/put", api.handlePut)
 	app.Post("/get", api.handleGet)
 	app.Post("/delete", api.handleDelete)
@@ -47,7 +48,7 @@ func validateAPIKey(c *fiber.Ctx, key string) (bool, error) {
 	return false, fmt.Errorf("invalid api key")
 }
 
-func (a *api) handleNewCollection(c *fiber.Ctx) error {
+func (a *api) handleNewBucket(c *fiber.Ctx) error {
 	b := &struct {
 		Name  string `json:"name"`
 		Dim   uint   `json:"dim"`
@@ -57,9 +58,9 @@ func (a *api) handleNewCollection(c *fiber.Ctx) error {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
 	}
-	log.Trace(fmt.Sprintf("creating collection %s", b.Name), nil)
-	space := utils.SpaceFromString(b.Space)
-	err := a.h.NewCollection(b.Name, b.Dim, space)
+	log.Trace(fmt.Sprintf("creating bucket %s", b.Name), nil)
+	space := common.SpaceFromString(b.Space)
+	err := a.db.NewBucket(b.Name, b.Dim, space)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
@@ -67,7 +68,7 @@ func (a *api) handleNewCollection(c *fiber.Ctx) error {
 	return c.JSON(nil)
 }
 
-func (a *api) handleDeleteCollection(c *fiber.Ctx) error {
+func (a *api) handleDeleteBucket(c *fiber.Ctx) error {
 	b := &struct {
 		Name string `json:"name"`
 	}{}
@@ -75,7 +76,7 @@ func (a *api) handleDeleteCollection(c *fiber.Ctx) error {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
 	}
-	err := a.h.DeleteCollection(b.Name)
+	err := a.db.DeleteBucket(b.Name)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
@@ -85,16 +86,16 @@ func (a *api) handleDeleteCollection(c *fiber.Ctx) error {
 
 func (a *api) handlePut(c *fiber.Ctx) error {
 	b := &struct {
-		Collection string                 `json:"collection"`
-		Key        string                 `json:"key"`
-		Vector     []float32              `json:"vector"`
-		Meta       map[string]interface{} `json:"meta"`
+		Bucket string                 `json:"bucket"`
+		Key    string                 `json:"key"`
+		Vector []float32              `json:"vector"`
+		Meta   map[string]interface{} `json:"meta"`
 	}{}
 	if err := c.BodyParser(&b); err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
 	}
-	err := a.h.Put(b.Collection, b.Key, b.Vector, b.Meta)
+	err := a.db.Put(b.Bucket, b.Key, b.Vector, b.Meta)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
@@ -104,14 +105,14 @@ func (a *api) handlePut(c *fiber.Ctx) error {
 
 func (a *api) handleGet(c *fiber.Ctx) error {
 	b := &struct {
-		Collection string `json:"collection"`
-		Key        string `json:"key"`
+		Bucket string `json:"bucket"`
+		Key    string `json:"key"`
 	}{}
 	if err := c.BodyParser(&b); err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
 	}
-	entry, err := a.h.Get(b.Collection, b.Key)
+	entry, err := a.db.Get(b.Bucket, b.Key)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(500).SendString(err.Error())
@@ -126,14 +127,14 @@ func (a *api) handleGet(c *fiber.Ctx) error {
 
 func (a *api) handleDelete(c *fiber.Ctx) error {
 	b := &struct {
-		Collection string `json:"collection"`
-		Key        string `json:"key"`
+		Bucket string `json:"bucket"`
+		Key    string `json:"key"`
 	}{}
 	if err := c.BodyParser(&b); err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	err := a.h.Delete(b.Collection, b.Key)
+	err := a.db.Delete(b.Bucket, b.Key)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
@@ -143,15 +144,15 @@ func (a *api) handleDelete(c *fiber.Ctx) error {
 
 func (a *api) handleSearch(c *fiber.Ctx) error {
 	b := &struct {
-		Collection string    `json:"collection"`
-		Query      []float32 `json:"query"`
-		K          int       `json:"k"`
+		Bucket string    `json:"bucket"`
+		Query  []float32 `json:"query"`
+		K      uint      `json:"k"`
 	}{}
 	if err := c.BodyParser(&b); err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	res, err := a.h.Search(b.Collection, b.Query, b.K)
+	res, err := a.db.Search(b.Bucket, b.Query, b.K)
 	if err != nil {
 		log.Error(err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())

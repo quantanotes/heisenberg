@@ -1,4 +1,4 @@
-package utils
+package common
 
 type SpaceType int
 
@@ -19,4 +19,13 @@ func SpaceFromString(space string) SpaceType {
 	default:
 		return Cosine
 	}
+}
+
+type IndexConfig struct {
+	Name     string
+	Indexer  int
+	FreeList []uint
+	Dim      uint
+	Space    int
+	Count    uint
 }

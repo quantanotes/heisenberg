@@ -6,15 +6,15 @@ import (
 )
 
 type Entry struct {
-	Collection string `json:"collection"`
-	Key        string `json:"key"`
-	Value      Value  `json:"value"`
+	Bucket string `json:"bucket"`
+	Key    string `json:"key"`
+	Value  Value  `json:"value"`
 }
 
 type Value struct {
-	Index  uint                   `json:"index"`
-	Vector []float32              `json:"vector"`
-	Meta   map[string]interface{} `json:"meta"`
+	Index  uint           `json:"index"`
+	Vector []float32      `json:"vector"`
+	Meta   map[string]any `json:"meta"`
 }
 
 func (v *Value) Serialise() ([]byte, error) {

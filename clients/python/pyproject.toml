@@ -1,0 +1,8 @@
+[project]
+name = "heisenbergpy"
+version = "0.0.2"
+authors = [
+    { name="Quanta" },
+]
+description = "Python client for HeisenbergDB"
+

@@ -2,15 +2,16 @@ package core
 
 import (
 	"fmt"
-	"heisenberg/utils"
 	"os"
 	"path/filepath"
+
+	"github.com/quantanotes/heisenberg/common"
 
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 	"go.etcd.io/bbolt"
 )
 
-type indexMap = *orderedmap.OrderedMap[string, *Index]
+type indexMap = *orderedmap.OrderedMap[string, Index]
 
 // Manages the memory usage of multiple indices.
 type IndexManager struct {
@@ -19,32 +20,35 @@ type IndexManager struct {
 	path    string
 }
 
-func (im *IndexManager) New(conf indexConfig) {
-	idx := NewIndex(conf)
-	idx.Save(im.GetPath(conf.Name))
-	im.push(idx)
-}
-
 func NewIndexManager(path string, max uint) *IndexManager {
 	return &IndexManager{
-		indices: orderedmap.New[string, *Index](),
+		indices: orderedmap.New[string, Index](int(max)),
 		max:     max,
 		path:    path,
 	}
 }
 
+func (im *IndexManager) New(name string, indexer IndexerType, dim uint, space common.SpaceType) {
+	idx, err := NewIndex(indexer, name, dim, space)
+	if idx == nil || err != nil {
+		return // TODO: handle error
+	}
+	path := im.GetPath(name)
+	(idx).Save(path)
+	im.push(idx)
+}
+
 func (im *IndexManager) Close() {
 	for pair := im.indices.Oldest(); pair != nil; pair = pair.Next() {
-		pair.Value.Save(im.GetPath(pair.Value.config.Name))
+		pair.Value.Save(im.GetPath(pair.Value.GetConfig().Name))
 		pair.Value.Close()
 	}
 }
 
-func (im *IndexManager) Get(name string, db *bbolt.DB) (*Index, error) {
+func (im *IndexManager) Get(name string, kv *bbolt.DB) (Index, error) {
 	idx, ok := im.indices.Get(name)
 	if !ok {
-		fmt.Printf("loading %s", name)
-		return im.load(name, db)
+		return im.load(name, kv)
 	}
 	im.indices.MoveToBack(name)
 	return idx, nil
@@ -54,18 +58,18 @@ func (im *IndexManager) Delete(name string) error {
 	return os.Remove(im.GetPath(name))
 }
 
-func (im *IndexManager) load(name string, db *bbolt.DB) (*Index, error) {
+func (im *IndexManager) load(name string, kv *bbolt.DB) (Index, error) {
 	// Retrieve configuration from key value store
-	conf := &indexConfig{}
-	err := db.View(func(tx *bbolt.Tx) error {
+	conf := &common.IndexConfig{}
+	err := kv.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(name))
 		data := b.Get([]byte(configKey))
 		if data == nil {
-			return utils.InvalidIndexConfig(name)
+			return common.InvalidIndexConfig(name)
 		}
-		err := utils.FromBytes(data, conf)
+		err := common.FromBytes(data, conf)
 		if err != nil {
-			return utils.InvalidIndexConfig(name, err)
+			return common.InvalidIndexConfig(name, err)
 		}
 		return nil
 	})
@@ -83,11 +87,11 @@ func (im *IndexManager) load(name string, db *bbolt.DB) (*Index, error) {
 	return idx, nil
 }
 
-func (im *IndexManager) push(idx *Index) {
-	im.indices.Store(idx.config.Name, idx)
+func (im *IndexManager) push(idx Index) {
+	im.indices.Set(idx.GetConfig().Name, idx)
 	for im.indices.Len() > int(im.max) {
 		pair := im.indices.Oldest()
-		pair.Value.Save(im.GetPath(idx.config.Name))
+		pair.Value.Save(im.GetPath(idx.GetConfig().Name))
 		im.indices.Delete(pair.Key)
 	}
 }

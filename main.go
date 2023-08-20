@@ -1,9 +1,10 @@
 package main
 
 import (
-	"heisenberg/core"
-	"heisenberg/server"
 	"os"
+
+	"github.com/quantanotes/heisenberg/core"
+	"github.com/quantanotes/heisenberg/server"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 			panic(err)
 		}
 	}
-	h := core.NewHeisenberg(path)
-	defer h.Close()
-	server.RunAPI(h, ":8080")
+	db := core.NewDB(path)
+	defer db.Close()
+	server.RunAPI(db, ":5000")
 }

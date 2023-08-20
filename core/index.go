@@ -1,63 +1,55 @@
 package core
 
 import (
-	"heisenberg/hnsw"
-	"heisenberg/utils"
+	"fmt"
+
+	"github.com/quantanotes/heisenberg/common"
+	"github.com/quantanotes/heisenberg/core/hnsw"
 )
 
-type indexConfig struct {
-	Name  string
-	Count uint
-	Dim   uint
-	Space uint
+type IndexerType int
+
+const (
+	HNSWIndexerType  IndexerType = 1
+	AnnoyIndexerType IndexerType = 2
+)
+
+type Index interface {
+	Close()
+	Save(string) error
+	Insert(uint, []float32) error
+	Delete(uint) error
+	Search([]float32, uint) ([]uint, error)
+	Next() uint
+	GetConfig() common.IndexConfig
 }
 
-type Index struct {
-	config indexConfig
-	hnsw   *hnsw.HNSW
-}
-
-func NewIndex(conf indexConfig) *Index {
-	hnsw := hnsw.NewHNSW(utils.SpaceType(conf.Space), int(conf.Dim), 1000000, &hnsw.HNSWOptions{M: 50, Ef: 100}, 69420)
-	return &Index{conf, hnsw}
-}
-
-func LoadIndex(path string, conf indexConfig) (*Index, error) {
-	hnsw, err := hnsw.LoadHNSW(path, int(conf.Dim), utils.SpaceType(conf.Space))
-	if err != nil {
-		return nil, err
+func NewIndex(indexer IndexerType, name string, dim uint, space common.SpaceType) (Index, error) {
+	config := common.IndexConfig{
+		Name:     name,
+		Indexer:  int(indexer),
+		FreeList: make([]uint, 0),
+		Dim:      dim,
+		Space:    int(space),
+		Count:    0,
 	}
-	return &Index{
-		conf,
-		hnsw,
-	}, nil
-}
-
-func (i *Index) Close() {
-	i.hnsw.Free()
-}
-
-func (i *Index) Save(path string) {
-	i.hnsw.Save(path)
-}
-
-func (i *Index) Insert(id uint, vec []float32) error {
-	if len(vec) != int(i.config.Dim) {
-		return utils.DimensionMismatch(len(vec), int(i.config.Dim))
+	switch indexer {
+	case HNSWIndexerType:
+		return hnsw.New(space, config, hnsw.HNSWOptions{M: 50, Ef: 100, Max: 1000000}), nil
+	case AnnoyIndexerType:
+		return nil, nil
+	default:
+		return nil, fmt.Errorf("unknown indexer type")
 	}
-	return i.hnsw.Add(int(id), vec)
 }
 
-func (i *Index) Delete(id uint) error {
-	return i.hnsw.Delete(int(id))
-}
-
-func (i *Index) Search(query []float32, k int) ([]int, error) {
-	return i.hnsw.Search(query, k)
-}
-
-// Generates unique index keys
-func (i *Index) Next() uint {
-	i.config.Count++
-	return i.config.Count
+func LoadIndex(path string, config common.IndexConfig) (Index, error) {
+	switch IndexerType(config.Indexer) {
+	case HNSWIndexerType:
+		return hnsw.Load(path, config)
+	case AnnoyIndexerType:
+		return nil, nil
+	default:
+		return nil, fmt.Errorf("unknown indexer type")
+	}
 }

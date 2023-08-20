@@ -10,9 +10,23 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# goland
+.idea/
+
 # Go workspace file
 go.work
 
 /vendor
 
 .database
+
+# default heisenberg data
+.heisenberg/
+
+.tmp
+
+__pycache__
+
+/clients/python/dist/*
+
+/clients/python/src/heisenbergpy.egg-info/*
