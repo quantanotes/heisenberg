@@ -26,7 +26,7 @@ func NewCache(name string, dim uint, space common.SpaceType) *Cache {
 
 func (c *Cache) Get(key string) (Entry, error) {
 	if val, ok := c.kv[key]; ok {
-		return Entry{Collection: c.name, Key: key, Value: val}, nil
+		return Entry{Bucket: c.name, Key: key, Value: val}, nil
 	}
 	return Entry{}, common.InvalidKey(c.name, key)
 }
@@ -62,7 +62,7 @@ func (c *Cache) Search(query []float32, k uint) ([]Entry, error) {
 	for i, ids := range ids {
 		key := c.mapping[uint(ids)]
 		value := c.kv[key]
-		entry := Entry{Collection: c.name, Key: key, Value: value}
+		entry := Entry{Bucket: c.name, Key: key, Value: value}
 		results[i] = entry
 	}
 	return results, nil
