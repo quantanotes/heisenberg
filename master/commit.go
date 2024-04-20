@@ -38,5 +38,6 @@ func (c *committer) start() {
 
 	c.running = true
 	c.wal.Rotate()
+	c.memtable.Rotate()
 	c.manager.Send(model.CommitRequest{})
 }
