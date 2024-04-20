@@ -5,9 +5,10 @@ import (
 	"sync/atomic"
 )
 
+// Handles rotating WAL/Memtable during commit phase.
 type committer struct {
 	*Master
-	pending   bool
+	running   bool
 	committed atomic.Int32
 }
 
@@ -21,21 +22,21 @@ func (c *committer) Commit() {
 }
 
 func (c *committer) finish() {
+	// If all storage nodes have responded, we can finish the rotation
 	if c.committed.Load() != int32(c.manager.Size()) {
+		c.committed.Store(0)
+		c.running = false
 		return
 	}
 }
 
 func (c *committer) start() {
-	if c.pending || !c.wal.Full() {
+	// Begin the commit phase once the WAL is full
+	if c.running || !c.wal.Full() {
 		return
 	}
 
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
+	c.running = true
 	c.wal.Rotate()
 	c.manager.Send(model.CommitRequest{})
-
-	c.pending = true
 }

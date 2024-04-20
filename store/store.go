@@ -20,8 +20,8 @@ func New() Store {
 
 func (s *Store) Receive(msg any) {
 	switch msg := msg.(type) {
-	case model.CommitRequest:
-		s.logger.Debug(msg.Path)
+	case model.PutRequest:
+		s.logger.Debug(string(msg.Key))
 	}
 }
 

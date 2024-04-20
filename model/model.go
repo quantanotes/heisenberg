@@ -3,9 +3,21 @@ package model
 type Method uint32
 
 const (
-	MethodPut    = 1
-	MethodDelete = 2
+	MethodPut Method = iota
+	MethodDelete
 )
+
+type Job int
+
+const (
+	JobDB Job = iota
+	JobMaster
+	JobStore
+)
+
+type PutRequest struct {
+	Key, Value []byte
+}
 
 type CommitRequest struct {
 	Path string

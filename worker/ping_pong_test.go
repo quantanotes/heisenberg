@@ -32,8 +32,8 @@ func (p *ponger) Receive(msg any) {
 }
 
 func TestPingPong(t *testing.T) {
-	m.Add(&pinger{})
-	m.Add(&ponger{})
+	m.Add(&pinger{}, Metadata{})
+	m.Add(&ponger{}, Metadata{})
 	m.Start()
 	m.Send(ping{})
 	defer m.Stop()

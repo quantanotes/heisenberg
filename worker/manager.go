@@ -4,12 +4,16 @@ type Manager struct {
 	processes []process
 }
 
+type SubManager struct {
+	processes []process
+}
+
 func NewManager() *Manager {
 	return &Manager{processes: []process{}}
 }
 
-func (m *Manager) Add(w Worker) {
-	m.processes = append(m.processes, newProcess(w))
+func (m *Manager) Add(w Worker, meta Metadata) {
+	m.processes = append(m.processes, newProcess(w, meta))
 }
 
 func (m *Manager) Start() {
@@ -32,4 +36,20 @@ func (m *Manager) Send(msg any) {
 
 func (m *Manager) Size() int {
 	return len(m.processes)
+}
+
+func (m *Manager) WhereJobEq(job int) *SubManager {
+	processes := []process{}
+	for _, p := range m.processes {
+		if p.Meta.Job == job {
+			processes = append(processes, p)
+		}
+	}
+	return &SubManager{processes}
+}
+
+func (sm *SubManager) Send(msg any) {
+	for _, p := range sm.processes {
+		p.Send(msg)
+	}
 }

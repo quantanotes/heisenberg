@@ -31,3 +31,11 @@ func WriteBytes(w io.Writer, buf []byte) error {
 
 	return nil
 }
+
+func AppendBytes(w io.Writer, s io.Seeker, buf []byte) error {
+	if _, err := s.Seek(0, io.SeekEnd); err != nil {
+		return err
+	}
+	WriteBytes(w, buf)
+	return nil
+}

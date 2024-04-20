@@ -1,13 +1,15 @@
 package worker
 
 type process struct {
+	Meta   Metadata
 	worker Worker
 	inbox  chan any
 }
 
-func newProcess(worker Worker) process {
+func newProcess(w Worker, m Metadata) process {
 	return process{
-		worker: worker,
+		Meta:   m,
+		worker: w,
 		inbox:  make(chan any, 4096),
 	}
 }

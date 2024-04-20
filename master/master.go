@@ -15,6 +15,9 @@ type Master struct {
 	wal       wal
 	memtable  memtable
 	committer committer
+	// Pending responses from asynchronous manager.Send()
+	// This needs to be 0 before the committer can active
+	pending atomic.Int32
 }
 
 func New() *Master {
@@ -58,6 +61,11 @@ func (m *Master) put(key, value []byte) error {
 	}
 
 	m.memtable.Put(key, value)
+	m.pending.Add(1)
+	// Signal to store nodes to append to the value log
+	m.manager.
+		WhereJobEq(int(model.JobStore)).
+		Send(model.PutRequest{Key: key, Value: value})
 
 	return nil
 }
