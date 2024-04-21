@@ -10,20 +10,21 @@ type memtable struct {
 	data         btree.BTree
 	rotationData btree.BTree
 	rotating     bool
+	indexBuilder memtableIndexBuilder
 }
 
-type memtableRecord struct {
+type memtableEntry struct {
 	key, value   []byte
 	page, offset uint32
 }
 
 func (m *memtable) Put(key, value []byte) {
-	m.data.ReplaceOrInsert(memtableRecord{key: key, value: value})
+	m.data.ReplaceOrInsert(memtableEntry{key: key, value: value})
 }
 
 func (m *memtable) UpdateHeapPointer(key []byte, page, offset uint32) {
-	mr := m.data.Get(memtableRecord{key: key}).(memtableRecord)
-	m.data.ReplaceOrInsert(memtableRecord{key: key, value: mr.value, page: page, offset: offset})
+	me := m.data.Get(memtableEntry{key: key}).(memtableEntry)
+	m.data.ReplaceOrInsert(memtableEntry{key: key, value: me.value, page: page, offset: offset})
 }
 
 func (m *memtable) Rotate() {
@@ -32,13 +33,10 @@ func (m *memtable) Rotate() {
 	m.data = *btree.New(2)
 }
 
-func (m *memtable) Foreach() {
-}
-
-func (mr memtableRecord) Less(than btree.Item) bool {
+func (me memtableEntry) Less(than btree.Item) bool {
 	switch than := than.(type) {
-	case *memtableRecord:
-		return bytes.Compare(mr.key, than.key) < 1
+	case *memtableEntry:
+		return bytes.Compare(me.key, than.key) < 1
 	default:
 		return true
 	}

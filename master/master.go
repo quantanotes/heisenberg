@@ -28,9 +28,10 @@ func New() *Master {
 }
 
 func (m *Master) Receive(msg any) {
-	switch msg.(type) {
-	case model.CommitRequest:
-		m.manager.Send(model.CommitResponse{})
+	switch msg := msg.(type) {
+	case model.StorePutResponse:
+		m.memtable.UpdateHeapPointer(msg.Key, msg.Page, msg.Offset)
+		m.pending.Add(-1)
 	case model.CommitResponse:
 		m.committer.Commit()
 	}
@@ -61,8 +62,8 @@ func (m *Master) put(key, value []byte) error {
 	}
 
 	m.memtable.Put(key, value)
-	m.pending.Add(1)
 	// Signal to store nodes to append to the value log
+	m.pending.Add(1)
 	m.manager.
 		WhereJobEq(int(model.JobStore)).
 		Send(model.PutRequest{Key: key, Value: value})
