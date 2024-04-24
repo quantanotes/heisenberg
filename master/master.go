@@ -2,7 +2,6 @@ package master
 
 import (
 	"heisenberg/model"
-	"heisenberg/query"
 	"heisenberg/worker"
 	"sync"
 	"sync/atomic"
@@ -71,6 +70,6 @@ func (m *Master) put(key, value []byte) error {
 	return nil
 }
 
-func (m *Master) execute(plan query.Plan) {
+// func (m *Master) execute(plan query.Plan) {
 
-}
+// }

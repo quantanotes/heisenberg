@@ -10,3 +10,5 @@ func New() Heisenberg {
 func (h *Heisenberg) Run() {
 	h.repl()
 }
+
+func (h *Heisenberg) open(path string) {}

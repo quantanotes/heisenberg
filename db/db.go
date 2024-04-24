@@ -1,7 +1,6 @@
 package db
 
 import (
-	"heisenberg/query"
 	"heisenberg/worker"
 )
 
@@ -21,9 +20,5 @@ func (db *DB) put() {
 }
 
 func (db *DB) delete() {
-
-}
-
-func (db *DB) execute(plan query.Plan) {
 
 }
